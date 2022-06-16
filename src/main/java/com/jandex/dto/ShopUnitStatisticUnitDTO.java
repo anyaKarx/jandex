@@ -9,7 +9,6 @@ import org.threeten.bp.LocalDateTime;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -50,51 +49,4 @@ public class ShopUnitStatisticUnitDTO {
     @Valid
     private LocalDateTime date;
 
-    @Override
-    public boolean equals(java.lang.Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        ShopUnitStatisticUnitDTO shopUnitStatisticUnit = (ShopUnitStatisticUnitDTO) o;
-        return Objects.equals(this.id, shopUnitStatisticUnit.id) &&
-                Objects.equals(this.name, shopUnitStatisticUnit.name) &&
-                Objects.equals(this.parentId, shopUnitStatisticUnit.parentId) &&
-                Objects.equals(this.type, shopUnitStatisticUnit.type) &&
-                Objects.equals(this.price, shopUnitStatisticUnit.price) &&
-                Objects.equals(this.date, shopUnitStatisticUnit.date);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, name, parentId, type, price, date);
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("class ShopUnitStatisticUnit {\n");
-
-        sb.append("    id: ").append(toIndentedString(id)).append("\n");
-        sb.append("    name: ").append(toIndentedString(name)).append("\n");
-        sb.append("    parentId: ").append(toIndentedString(parentId)).append("\n");
-        sb.append("    type: ").append(toIndentedString(type)).append("\n");
-        sb.append("    price: ").append(toIndentedString(price)).append("\n");
-        sb.append("    date: ").append(toIndentedString(date)).append("\n");
-        sb.append("}");
-        return sb.toString();
-    }
-
-    /**
-     * Convert the given object to string with each line indented by 4 spaces
-     * (except the first line).
-     */
-    private String toIndentedString(java.lang.Object o) {
-        if (o == null) {
-            return "null";
-        }
-        return o.toString().replace("\n", "\n    ");
-    }
 }

@@ -2,28 +2,34 @@ package com.jandex.entity;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.threeten.bp.LocalDateTime;
+import lombok.experimental.Accessors;
 
 import javax.persistence.*;
-import java.util.UUID;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "History")
+@Accessors(chain = true)
+@Table(name = "history")
 public class History {
     @Id
     @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "update owner id", nullable = false)
-    private UUID externalIdParent;
+    @ManyToOne
+    @JoinColumn(name = "offer_external_id")
+    private Offer offer;
 
-    @Column(name = "Date", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "category_external_id")
+    private Category category;
+
+    @Column(name = "date", nullable = false)
     private LocalDateTime date;
 
-    @Column(name = "Price", nullable = false)
+    @Column(name = "price", nullable = false)
     private Long price;
 }
 

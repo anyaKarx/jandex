@@ -10,6 +10,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class ShopUnitImportDTO {

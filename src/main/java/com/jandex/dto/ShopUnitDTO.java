@@ -3,22 +3,24 @@ package com.jandex.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import org.threeten.bp.LocalDateTime;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Getter
-@Setter
+@Data
+@Accessors(chain = true)
+@NoArgsConstructor
 @AllArgsConstructor
 public class ShopUnitDTO {
     @JsonProperty("id")
-    @Schema(example = "3fa85f64-5717-4562-b3fc-2c963f66a333", required = true, description = "Уникальный идентификатор")
+    @Schema(example = "3fa85f64-5717-4562-b3fc-2c963f66a333", required = true, description = "Уникальный идентиф           cdикатор")
     @NotNull
     private UUID id;
 
@@ -42,7 +44,7 @@ public class ShopUnitDTO {
     @Schema(required = true, description = " тип: категория или товар")
     @NotNull
     @Valid
-    private final ShopUnitTypeDTO type;
+    private  ShopUnitTypeDTO type;
 
     @JsonProperty("price")
     @Schema(description = "Целое число, для категории - это средняя цена всех дочерних товаров(включая товары подкатегорий)." + " Если цена является не целым числом, округляется в меньшую сторону до целого числа." + " Если категория не содержит товаров цена равна null.")

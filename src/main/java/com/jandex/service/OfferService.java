@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class OfferService {
     private final OfferRepository offerRepository;
-
     public Offer save(Offer offer) {
+
         return offerRepository.save(offer);
     }
 
