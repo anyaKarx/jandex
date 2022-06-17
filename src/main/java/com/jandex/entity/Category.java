@@ -1,6 +1,7 @@
 package com.jandex.entity;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
@@ -13,14 +14,11 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "category")
+@RequiredArgsConstructor
 public class Category {
     @Id
     @Column(name = "id", nullable = false)
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long internalId;
-
-    @Column(name = "id_external", nullable = false)
-    private UUID externalId;
+    private UUID id;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -28,21 +26,37 @@ public class Category {
     @Column(name = "date", nullable = false)
     private LocalDateTime date;
 
-    @Column(name = "parent id external", nullable = false)
-    private UUID parentId;
+    @ManyToOne
+    @JoinColumn(name = "parent_id",  nullable = true)
+    private Category parentId;
 
     @Column(name = "price", nullable = false)
     private Long price;
 
-    @OneToMany(mappedBy = "category", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "parentId", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Offer> offers = new ArrayList<>();
 
     @OneToMany(mappedBy = "category", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<History> histories = new ArrayList<>();
 
+    public Category(UUID parentId) {
+        this.id = parentId;
+    }
+
     public void setPrice(Long price) {
-        Long latestPrice = this.price;
-        latestPrice += price;
-        latestPrice /= offers.size();
+        if (this.price != null) {
+            Long latestPrice = this.price;
+            latestPrice += price;
+            latestPrice /= offers.size()+1;
+            this.price = latestPrice;
+        } if ( price != null)
+            this.price = price;
+        else  this.price = Long.valueOf(0);
+    }
+
+    public void setParentId(UUID parentId) {
+        if(parentId != null)
+        this.parentId = new Category(parentId);
+        else this.parentId = null;
     }
 }
