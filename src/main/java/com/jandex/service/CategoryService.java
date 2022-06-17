@@ -20,4 +20,8 @@ public class CategoryService {
         return  categoryRepository.getOne(id);
     }
 
+    public Category update (Category category){
+        return  categoryRepository.saveAndFlush(category);
+    }
+
 }

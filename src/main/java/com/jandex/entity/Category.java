@@ -30,7 +30,7 @@ public class Category {
     @JoinColumn(name = "parent_id",  nullable = true)
     private Category parentId;
 
-    @Column(name = "price", nullable = false)
+    @Column(name = "price", nullable = true)
     private Long price;
 
     @OneToMany(mappedBy = "parentId", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
@@ -43,16 +43,12 @@ public class Category {
         this.id = parentId;
     }
 
-    public void setPrice(Long price) {
-        if (this.price != null) {
-            Long latestPrice = this.price;
-            latestPrice += price;
-            latestPrice /= offers.size()+1;
-            this.price = latestPrice;
-        } if ( price != null)
+    public void setAveragePrice(Long price) {
+        if ( price != null)
             this.price = price;
         else  this.price = Long.valueOf(0);
     }
+
 
     public void setParentId(UUID parentId) {
         if(parentId != null)
