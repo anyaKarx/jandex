@@ -16,8 +16,8 @@ public class CategoryService {
         return categoryRepository.save(category);
     }
 
-    public Category get (UUID id){
-        return  categoryRepository.getOne(id);
+    public Category getByExternalId(UUID id) {
+        return categoryRepository.findCategoryByExternalId(id);
     }
 
 }
