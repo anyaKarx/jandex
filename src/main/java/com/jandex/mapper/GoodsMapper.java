@@ -8,6 +8,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Mapper(componentModel = "spring")
 public interface GoodsMapper {
@@ -21,8 +22,11 @@ public interface GoodsMapper {
     Category shopUnitToCategory(ShopUnitDTO shopUnitDTO);
 
     @Mapping(target = "id", source = "id")
-    @Mapping(target = "category", ignore = true)
     @Mapping(target = "histories", ignore = true)
     Offer shopUnitToOffer(ShopUnitDTO shopUnitDTO);
+
+    default Category map(UUID value){
+        return new Category(value);
+    }
 
 }

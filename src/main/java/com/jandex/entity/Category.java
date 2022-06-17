@@ -1,6 +1,7 @@
 package com.jandex.entity;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
@@ -13,6 +14,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "category")
+@RequiredArgsConstructor
 public class Category {
     @Id
     @Column(name = "id", nullable = false)
@@ -24,8 +26,9 @@ public class Category {
     @Column(name = "date", nullable = false)
     private LocalDateTime date;
 
-    @Column(name = "parent_id", nullable = true)
-    private UUID parentId;
+    @ManyToOne
+    @JoinColumn(name = "parent_id",  nullable = true)
+    private Category parentId;
 
     @Column(name = "price", nullable = false)
     private Long price;
@@ -36,6 +39,10 @@ public class Category {
     @OneToMany(mappedBy = "category", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<History> histories = new ArrayList<>();
 
+    public Category(UUID parentId) {
+        this.id = parentId;
+    }
+
     public void setPrice(Long price) {
         if (this.price != null) {
             Long latestPrice = this.price;
@@ -45,5 +52,11 @@ public class Category {
         } if ( price != null)
             this.price = price;
         else  this.price = Long.valueOf(0);
+    }
+
+    public void setParentId(UUID parentId) {
+        if(parentId != null)
+        this.parentId = new Category(parentId);
+        else this.parentId = null;
     }
 }
