@@ -7,7 +7,7 @@ import com.jandex.dto.ShopUnitTypeDTO;
 import com.jandex.entity.History;
 import com.jandex.entity.Offer;
 import com.jandex.mapper.GoodsMapper;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +18,7 @@ import java.util.List;
 import static java.util.stream.Collectors.groupingBy;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class GoodsService {
     private final CategoryService categoryService;
     private final OfferService offerService;
@@ -29,8 +29,12 @@ public class GoodsService {
         var itemsToEntity = items.stream()
                 .map(shopUnitImportDTO -> goodsMapper.importToShopUnit(shopUnitImportDTO, request.getUpdateDate()))
                 .collect(groupingBy(ShopUnitDTO::getType));
-        saveCategory(itemsToEntity.get(ShopUnitTypeDTO.CATEGORY), request.getUpdateDate());
-        saveOffer(itemsToEntity.get(ShopUnitTypeDTO.OFFER), request.getUpdateDate());
+        var category = itemsToEntity.get(ShopUnitTypeDTO.CATEGORY);
+        var offers = itemsToEntity.get(ShopUnitTypeDTO.OFFER);
+        if(category != null){
+        saveCategory(category, request.getUpdateDate());}
+        if (offers != null){
+        saveOffer(offers, request.getUpdateDate());}
         return new ResponseDTO()
                 .setResultCode(HttpStatus.OK.value())
                 .setResultMessage(HttpStatus.OK.name());
@@ -40,14 +44,11 @@ public class GoodsService {
         itemsToEntity
                 .stream()
                 .map(goodsMapper::shopUnitToCategory)
-                .map(category -> {
-                    category.getHistories().add(
-                            new History()
-                                    .setDate(dateTime)
-                                    .setPrice(category.getPrice()));
-                    return category;
-                })
-                .map(categoryService::save);
+                .peek(category -> category.getHistories().add(
+                        new History()
+                                .setDate(dateTime)
+                                .setPrice(category.getPrice()).setCategory(category)))
+                .forEach(categoryService::save);
     }
 
     public void saveOffer(List<ShopUnitDTO> itemsToEntity, LocalDateTime dateTime) {
@@ -55,20 +56,34 @@ public class GoodsService {
                 .stream()
                 .map(goodsMapper::shopUnitToOffer)
                 .map(this::setCategory)
-                .map(offer -> {
+                .peek(offer -> {
                     offer.getHistories().add(
-                            new History()
-                                    .setDate(dateTime)
-                                    .setPrice(offer.getPrice())
-                                    .setOffer(offer));
-                    return offer;
+                                new History()
+                                .setDate(dateTime)
+                                .setPrice(offer.getPrice())
+                                .setOffer(offer));
+
                 })
-                .map(offerService::save);
+                .forEach(offerService::save);
     }
 
     public Offer setCategory(Offer offer) {
-        offer.setCategory(categoryService.getByExternalId(offer.getParentId()));
-        categoryService.getByExternalId(offer.getParentId()).setPrice(offer.getPrice());
+        var category =offer.getParentId();
+         category.setPrice(offer.getPrice());
+         category.getHistories().add(
+                new History()
+                        .setDate(offer.getDate())
+                        .setPrice(category.getPrice()).setCategory(category));
+         category.setDate(offer.getDate());
+         while(category.getParentId() != null){
+            category = category.getParentId();
+             category.getHistories().add(
+                     new History()
+                             .setDate(offer.getDate())
+                             .setPrice(category.getPrice()).setCategory(category));
+             category.setDate(offer.getDate());
+             category.setPrice(offer.getPrice());
+         }
         return offer;
     }
 }

@@ -19,11 +19,11 @@ public class History {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "offer_external_id")
+    @JoinColumn(name = "offer")
     private Offer offer;
 
     @ManyToOne
-    @JoinColumn(name = "category_external_id")
+    @JoinColumn(name = "category")
     private Category category;
 
     @Column(name = "date", nullable = false)

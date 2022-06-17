@@ -12,31 +12,25 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "Offer")
+@Table(name = "offer")
 public class Offer {
+
     @Id
     @Column(name = "id", nullable = false)
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long internalId;
+    private UUID Id;
 
-    @Column(name = "idExternal", nullable = false)
-    private UUID externalId;
-
-    @Column(name = "Name", nullable = false)
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "Date", nullable = false)
+    @Column(name = "date", nullable = false)
     private LocalDateTime date;
-
-    @Column(name = "Parent idExternal", nullable = false)
-    private UUID parentId;
-
-    @Column(name = "Price", nullable = false)
-    private Long price;
 
     @ManyToOne
     @JoinColumn(name = "category_id")
-    private Category category;
+    private Category parentId;
+
+    @Column(name = "price", nullable = false)
+    private Long price;
 
     @OneToMany(mappedBy = "offer", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<History> histories = new ArrayList<>();

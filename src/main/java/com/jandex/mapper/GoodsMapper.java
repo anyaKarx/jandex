@@ -9,20 +9,18 @@ import org.mapstruct.Mapping;
 
 import java.time.LocalDateTime;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface GoodsMapper {
     @Mapping(target = "children", ignore = true)
     ShopUnitDTO importToShopUnit(ShopUnitImportDTO shopUnitImportDTO, LocalDateTime date);
 
 
-    @Mapping(target = "externalId", source = "id")
-    @Mapping(target = "internalId", ignore = true)
+    @Mapping(target = "id", source = "id")
     @Mapping(target = "offers", ignore = true)
     @Mapping(target = "histories", ignore = true)
     Category shopUnitToCategory(ShopUnitDTO shopUnitDTO);
 
-    @Mapping(target = "externalId", source = "id")
-    @Mapping(target = "internalId", ignore = true)
+    @Mapping(target = "id", source = "id")
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "histories", ignore = true)
     Offer shopUnitToOffer(ShopUnitDTO shopUnitDTO);
