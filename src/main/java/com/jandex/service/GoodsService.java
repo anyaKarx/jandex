@@ -54,10 +54,10 @@ public class GoodsService {
                 .map(goodsMapper::shopUnitToCategory)
                 .peek(category -> {
                     historyService.save(new History()
-                            .setId(category.getId())
+                            .setIdParent(category.getId())
                             .setDate(dateTime)
                             .setPrice((category.getPrice() == null ? Long.valueOf(0) : category.getPrice()))
-                            .setParentId(category.getParentId()));
+                            .setCategoryId(category.getParentId()));
                 })
                 .forEach(categoryService::save);
     }
@@ -68,10 +68,10 @@ public class GoodsService {
                 .map(goodsMapper::shopUnitToOffer)
                 .peek(offer -> {
                     historyService.save(new History()
-                            .setId(offer.getId())
+                            .setIdParent(offer.getId())
                             .setDate(dateTime)
                             .setPrice(offer.getPrice())
-                            .setParentId(offer.getParent().getId()));
+                            .setCategoryId(offer.getParent().getId()));
                 })
                 .forEach(offer -> {
                     offer.setParent(categoryService.get(offer.getParent().getId()));
@@ -89,8 +89,8 @@ public class GoodsService {
         historyService.save(new History()
                         .setDate(offer.getDate())
                         .setPrice(price)
-                        .setId(parent.getId()))
-                        .setParentId(parent.getParentId());
+                        .setIdParent(parent.getId()))
+                        .setCategoryId(parent.getParentId());
         parent.setDate(offer.getDate());
         categoryService.save(parent);
         while (parent.getParentId() != null) {

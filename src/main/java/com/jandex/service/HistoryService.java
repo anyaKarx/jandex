@@ -17,5 +17,5 @@ public class HistoryService {
         return historyRepository.save(history);
     }
 
-    public History findLatestHistoryById(UUID id) {return historyRepository.findHistoryByDate_MaxAndId(id);}
+    public History findLatestHistoryById(UUID id) {return historyRepository.findHistoryByDate_MaxAndIdParent(id);}
 }

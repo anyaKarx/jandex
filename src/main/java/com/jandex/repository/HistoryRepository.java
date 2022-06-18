@@ -11,5 +11,5 @@ import java.util.UUID;
 public interface HistoryRepository extends JpaRepository<History, UUID> {
 
  @Query(value="select * from history order by date desc limit 1", nativeQuery = true)
- History findHistoryByDate_MaxAndId(UUID id);
+ History findHistoryByDate_MaxAndIdParent(UUID id);
 }

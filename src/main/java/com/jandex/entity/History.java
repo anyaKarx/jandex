@@ -15,11 +15,14 @@ import java.util.UUID;
 @Table(name = "history")
 public class History {
     @Id
-    @Column(name = "id", nullable = false)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "idParent", nullable = false)
+    private UUID idParent;
 
     @Column(name = "category")
-    private UUID parentId;
+    private UUID categoryId;
 
     @Column(name = "date", nullable = false)
     private LocalDateTime date;
