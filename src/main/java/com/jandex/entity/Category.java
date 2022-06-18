@@ -26,33 +26,17 @@ public class Category {
     @Column(name = "date", nullable = false)
     private LocalDateTime date;
 
-    @ManyToOne
-    @JoinColumn(name = "parent_id",  nullable = true)
-    private Category parentId;
+    @Column(name = "parent_id",  nullable = true)
+    private UUID parentId;
 
     @Column(name = "price", nullable = true)
     private Long price;
 
-    @OneToMany(mappedBy = "parentId", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Offer> offers = new ArrayList<>();
-
-    @OneToMany(mappedBy = "category", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<History> histories = new ArrayList<>();
 
     public Category(UUID parentId) {
         this.id = parentId;
     }
 
-    public void setAveragePrice(Long price) {
-        if ( price != null)
-            this.price = price;
-        else  this.price = Long.valueOf(0);
-    }
-
-
-    public void setParentId(UUID parentId) {
-        if(parentId != null)
-        this.parentId = new Category(parentId);
-        else this.parentId = null;
-    }
 }

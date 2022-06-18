@@ -8,4 +8,6 @@ import java.util.UUID;
 
 @Repository
 public interface OfferRepository extends JpaRepository<Offer, UUID> {
+
+    int countOfferByParentId(UUID parentId);
 }

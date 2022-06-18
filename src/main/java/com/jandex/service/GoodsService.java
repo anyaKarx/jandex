@@ -28,17 +28,21 @@ public class GoodsService {
 
     public ResponseDTO importsData(@Valid ShopUnitImportRequestDTO request) {
         var items = request.getItems();
-        var itemsToEntity = items.stream()
-                .map(shopUnitImportDTO -> goodsMapper.importToShopUnit(shopUnitImportDTO, request.getUpdateDate()))
-                .collect(groupingBy(ShopUnitDTO::getType));
+        var itemsToEntity =
+                items.stream()
+                        .map(shopUnitImportDTO -> goodsMapper.importToShopUnit(shopUnitImportDTO, request.getUpdateDate()))
+                        .collect(groupingBy(ShopUnitDTO::getType));
+
         var category = itemsToEntity.get(ShopUnitTypeDTO.CATEGORY);
-        var offers = itemsToEntity.get(ShopUnitTypeDTO.OFFER);
         if (category != null) {
             saveCategory(category, request.getUpdateDate());
         }
+
+        var offers = itemsToEntity.get(ShopUnitTypeDTO.OFFER);
         if (offers != null) {
             saveOffer(offers, request.getUpdateDate());
         }
+
         return new ResponseDTO()
                 .setResultCode(HttpStatus.OK.value())
                 .setResultMessage(HttpStatus.OK.name());
@@ -49,11 +53,11 @@ public class GoodsService {
                 .stream()
                 .map(goodsMapper::shopUnitToCategory)
                 .peek(category -> {
-                    category.getHistories().add(
-                        new History()
-                                .setDate(dateTime)
-                                .setPrice((category.getPrice() == null) ? 0: category.getPrice())
-                                .setCategory(category));
+                    historyService.save(new History()
+                            .setId(category.getId())
+                            .setDate(dateTime)
+                            .setPrice((category.getPrice() == null ? Long.valueOf(0) : category.getPrice()))
+                            .setParentId(category.getParentId()));
                 })
                 .forEach(categoryService::save);
     }
@@ -63,31 +67,34 @@ public class GoodsService {
                 .stream()
                 .map(goodsMapper::shopUnitToOffer)
                 .peek(offer -> {
-                    offer.getHistories().add(
-                            new History()
-                                    .setDate(dateTime)
-                                    .setPrice(offer.getPrice())
-                                    .setOffer(offer));
-
+                    historyService.save(new History()
+                            .setId(offer.getId())
+                            .setDate(dateTime)
+                            .setPrice(offer.getPrice())
+                            .setParentId(offer.getParent().getId()));
                 })
                 .forEach(offer -> {
+                    offer.setParent(categoryService.get(offer.getParent().getId()));
                     offerService.save(offer);
-                    changeCategory(offer, offer.getParentId());
+                    changeCategory(offer, offer.getParent());
                 });
     }
 
     public void changeCategory(Offer offer, Category parent) {
         parent = categoryService.get(parent.getId());
-        parent.setDate(offer.getDate());
-        parent.getHistories().add(
-                new History()
+        var history = historyService.findLatestHistoryById(parent.getId());
+        var latestPrice = history.getPrice();
+        int countOff = offerService.countOfferByParentId(parent.getId());
+        Long price = (latestPrice + offer.getPrice())/((countOff == 0) ? 1 : countOff);
+        historyService.save(new History()
                         .setDate(offer.getDate())
-                        .setPrice(offer.getPrice())
-                        .setCategory(parent));
-        parent.setAveragePrice(historyService.getPrice(parent));
+                        .setPrice(price)
+                        .setId(parent.getId()))
+                        .setParentId(parent.getParentId());
+        parent.setDate(offer.getDate());
         categoryService.save(parent);
         while (parent.getParentId() != null) {
-            parent = parent.getParentId();
+            parent = categoryService.get(parent.getParentId());
             changeCategory(offer, parent);
         }
     }

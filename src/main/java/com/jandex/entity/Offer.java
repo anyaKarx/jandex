@@ -5,8 +5,6 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -27,11 +25,11 @@ public class Offer {
 
     @ManyToOne
     @JoinColumn(name = "category_id")
-    private Category parentId;
+    private Category parent;
+
 
     @Column(name = "price", nullable = false)
     private Long price;
 
-    @OneToMany(mappedBy = "offer", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<History> histories = new ArrayList<>();
+
 }

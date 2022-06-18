@@ -18,11 +18,10 @@ public interface GoodsMapper {
 
     @Mapping(target = "id", source = "id")
     @Mapping(target = "offers", ignore = true)
-    @Mapping(target = "histories", ignore = true)
     Category shopUnitToCategory(ShopUnitDTO shopUnitDTO);
 
     @Mapping(target = "id", source = "id")
-    @Mapping(target = "histories", ignore = true)
+    @Mapping(target = "parent", source = "parentId")
     Offer shopUnitToOffer(ShopUnitDTO shopUnitDTO);
 
     default Category map(UUID value){

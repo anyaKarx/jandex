@@ -5,6 +5,8 @@ import com.jandex.repository.OfferRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class OfferService {
@@ -14,4 +16,6 @@ public class OfferService {
         return offerRepository.save(offer);
     }
 
+    public int countOfferByParentId(UUID parentId)
+    { return offerRepository.countOfferByParentId(parentId);}
 }

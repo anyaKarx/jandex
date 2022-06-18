@@ -1,15 +1,12 @@
 package com.jandex.service;
 
 
-import com.jandex.entity.Category;
 import com.jandex.entity.History;
 import com.jandex.repository.HistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
-import static java.util.stream.Collectors.summarizingLong;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,14 +17,5 @@ public class HistoryService {
         return historyRepository.save(history);
     }
 
-    public Long getPrice(Category category) {
-        List<History> histories = historyRepository.findAllByCategory(category);
-        if (histories != null) {
-            var price = histories
-                    .stream()
-                    .collect(summarizingLong(History::getPrice)).getAverage();
-
-            return Double.doubleToLongBits(price);
-        }else return Long.valueOf(0);
-    }
+    public History findLatestHistoryById(UUID id) {return historyRepository.findHistoryByDate_MaxAndId(id);}
 }
