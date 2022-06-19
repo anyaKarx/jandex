@@ -3,4 +3,82 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
 
+<!--    <changeSet id="171616361377-1" author="Anya">-->
+<!--        <createTable tableName="category">-->
+<!--            <column name="id" type="uuid">-->
+<!--                <constraints primaryKey="true" primaryKeyName="category_id_pk" nullable="false"/>-->
+<!--            </column>-->
+<!--            <column name="name" type="varchar(255)">-->
+<!--                <constraints nullable="false"/>-->
+<!--            </column>-->
+<!--            <column name="date" type="datetime">-->
+<!--                <constraints nullable="false"/>-->
+<!--            </column>-->
+<!--            <column name="price" type="numeric"/>-->
+<!--        </createTable>-->
+<!--    </changeSet>-->
+
+<!--    <changeSet id="171616361377-2" author="Anya">-->
+<!--        <createTable tableName="history">-->
+<!--            <column name="id" type="numeric">-->
+<!--                <constraints primaryKey="true" primaryKeyName="history_id_pk" nullable="false"/>-->
+<!--            </column>-->
+<!--            <column name="price" type="numeric">-->
+<!--                <constraints nullable="false"/>-->
+<!--            </column>-->
+<!--            <column name="date" type="datetime">-->
+<!--                <constraints nullable="false"/>-->
+<!--            </column>-->
+<!--        </createTable>-->
+<!--    </changeSet>-->
+
+<!--    <changeSet id="171616361377-3" author="Anya">-->
+<!--        <createTable tableName="offer">-->
+<!--            <column name="id" type="uuid">-->
+<!--                <constraints primaryKey="true" primaryKeyName="offer_id_pk" nullable="false"/>-->
+<!--            </column>-->
+<!--            <column name="name" type="varchar(255)">-->
+<!--                <constraints nullable="false"/>-->
+<!--            </column>-->
+<!--            <column name="date" type="datetime">-->
+<!--                <constraints nullable="false"/>-->
+<!--            </column>-->
+<!--            <column name="price" type="numeric">-->
+<!--                <constraints nullable="false"/>-->
+<!--            </column>-->
+<!--        </createTable>-->
+<!--    </changeSet>-->
+
+<!--    <changeSet id="171616361377-4" author="anya">-->
+<!--        <sql>-->
+
+<!--            CREATE OR REPLACE FUNCTION process_goods_audit() RETURNS TRIGGER AS $history$-->
+<!--            BEGIN-->
+<!--        &#45;&#45;-->
+<!--        &#45;&#45; Добавление строки в history, которая отражает изменение цены в товарах или категориях;-->
+<!--        &#45;&#45; для определения типа операции применяется специальная переменная TG_OP.-->
+<!--        &#45;&#45;-->
+<!--        IF (TG_OP = 'DELETE') THEN-->
+<!--            INSERT INTO history OLD.id, OLD.price, OLD.date;-->
+<!--            RETURN OLD;-->
+<!--            ELSIF (TG_OP = 'UPDATE') THEN-->
+<!--            INSERT INTO history NEW.id, NEW.price, NEW.date;-->
+<!--            RETURN NEW;-->
+<!--            ELSIF (TG_OP = 'INSERT') THEN-->
+<!--            INSERT INTO history NEW.id, NEW.price, NEW.date;-->
+<!--            RETURN NEW;-->
+<!--            END IF;-->
+<!--            RETURN NULL; &#45;&#45; возвращаемое значение для триггера AFTER игнорируется-->
+<!--            END;-->
+<!--            $history$ LANGUAGE plpgsql;-->
+
+<!--            CREATE TRIGGER history_audit-->
+<!--                AFTER INSERT OR UPDATE OR DELETE ON category-->
+<!--                FOR EACH ROW EXECUTE PROCEDURE process_goods_audit();-->
+
+<!--            CREATE TRIGGER history_audit2-->
+<!--                AFTER INSERT OR UPDATE OR DELETE ON offer-->
+<!--                FOR EACH ROW EXECUTE PROCEDURE process_goods_audit();-->
+<!--        </sql>-->
+<!--    </changeSet>-->
 </databaseChangeLog>

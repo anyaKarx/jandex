@@ -6,7 +6,6 @@ import lombok.experimental.Accessors;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -18,11 +17,9 @@ public class History {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "idParent", nullable = false)
-    private UUID idParent;
-
-    @Column(name = "category")
-    private UUID categoryId;
+    @ManyToOne
+    @JoinColumn(name = "id_parent", nullable = false)
+    private Offer parent;
 
     @Column(name = "date", nullable = false)
     private LocalDateTime date;

@@ -44,7 +44,7 @@ public class ShopUnitDTO {
     @Schema(required = true, description = " тип: категория или товар")
     @NotNull
     @Valid
-    private  ShopUnitTypeDTO type;
+    private ShopUnitTypeDTO type;
 
     @JsonProperty("price")
     @Schema(description = "Целое число, для категории - это средняя цена всех дочерних товаров(включая товары подкатегорий)." + " Если цена является не целым числом, округляется в меньшую сторону до целого числа." + " Если категория не содержит товаров цена равна null.")

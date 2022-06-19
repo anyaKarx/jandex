@@ -5,6 +5,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -27,9 +28,10 @@ public class Offer {
     @JoinColumn(name = "category_id")
     private Category parent;
 
-
     @Column(name = "price", nullable = false)
     private Long price;
 
+    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<History> histories;
 
 }
