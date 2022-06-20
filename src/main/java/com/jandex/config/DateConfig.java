@@ -7,8 +7,8 @@ public class DateConfig {
            // .setInstantFormat("uuuu-MM-dd")                                 // Set Instant formatter
            // .setOffsetTimeFormat("HH:mm:ssXXX")                             // Set OffsetTime formatter
            // .setOffsetDateTimeFormat("uuuu-MM-dd'T'HH:mm:ssXXX")            // Set OffsetDateTime formatter
-                .setZonedDateTimeFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");   // Set ZonedDateTime formatter
-//            .setLocalDateTimeFormat("uuuu-MM-dd'T'HH:mm:ss")                // Set LocalDateTime formatter
+                .setZonedDateTimeFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")   // Set ZonedDateTime formatter
+            .setLocalDateTimeFormat("uuuu-MM-dd'T'HH:mm:ss.SSS");         // Set LocalDateTime formatter
 //            .setLocalDateFormat("uuuu-MM-dd")                               // Set LocalDate formatter
 //            .setLocalTimeFormat("HH:mm:ssXXX")                              // Set LocalTime formatter
 //            .setYearFormat("uuuu")                                          // Set Year formatter

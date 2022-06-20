@@ -1,9 +1,6 @@
 package com.jandex.web.rest;
 
-import com.jandex.dto.ErrorDTO;
-import com.jandex.dto.ResponseDTO;
-import com.jandex.dto.ShopUnitDTO;
-import com.jandex.dto.ShopUnitImportRequestDTO;
+import com.jandex.dto.*;
 import com.jandex.service.GoodsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -70,6 +67,24 @@ public class ShopUnitController {
     public ShopUnitDTO getNodes(@PathVariable UUID id)
     {
         return goodsService.getNodes(id);
+    }
+
+    @Operation(summary = "Получить информацию об элементе по идентификатору. ",
+            responses = {
+                    @ApiResponse(responseCode = "200",
+                            description = "Информация об элементе.",
+                            content = @Content(schema = @Schema(implementation = ShopUnitDTO.class))),
+                    @ApiResponse(responseCode = "400",
+                            description = "Невалидная схема документа или входные данные не верны.",
+                            content = @Content(schema = @Schema(implementation = ErrorDTO.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Категория/товар не найден.",
+                            content = @Content(schema = @Schema(implementation = ErrorDTO.class)))
+            })
+    @GetMapping("/sales")
+    public ShopUnitStatisticResponseDTO sales(@RequestParam(name = "date") String date)
+    {
+        return goodsService.getSales(date);
     }
 
 }

@@ -2,6 +2,7 @@ package com.jandex.mapper;
 
 import com.jandex.dto.ShopUnitDTO;
 import com.jandex.dto.ShopUnitImportDTO;
+import com.jandex.dto.ShopUnitStatisticUnitDTO;
 import com.jandex.dto.ShopUnitTypeDTO;
 import com.jandex.entity.Category;
 import com.jandex.entity.Offer;
@@ -43,4 +44,12 @@ public interface GoodsMapper {
     @Mapping(target = "price", source = "price")
     @Mapping(target = "children", ignore = true)
     ShopUnitDTO offerToShopUnitDto(Offer offer);
+
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "parentId", source = "parentId")
+    @Mapping(target = "type", source = "type")
+    @Mapping(target = "price", source = "price")
+    @Mapping(target = "name", source = "name")
+    @Mapping(target = "date", source = "date")
+    ShopUnitStatisticUnitDTO shopUnitDTOToStatDTO(ShopUnitDTO shopUnitDTO);
 }

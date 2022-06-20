@@ -1,9 +1,6 @@
 package com.jandex.service;
 
-import com.jandex.dto.ResponseDTO;
-import com.jandex.dto.ShopUnitDTO;
-import com.jandex.dto.ShopUnitImportRequestDTO;
-import com.jandex.dto.ShopUnitTypeDTO;
+import com.jandex.dto.*;
 import com.jandex.entity.Category;
 import com.jandex.entity.History;
 import com.jandex.exception.IncorrectDataException;
@@ -16,8 +13,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.Valid;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
 
@@ -59,7 +58,6 @@ public class GoodsService {
             } else {
                 shopUnitDTO = goodsMapper.offerToShopUnitDto(offerService.getOfferByUUID(id).get());
             }
-            throw new NotFoundDataException("Категория/товар не найден.");
         } else {
             shopUnitDTO = categoryToShopUnitDTO(categoryService.getCategoryByUUID(id).get());
         }
@@ -86,8 +84,10 @@ public class GoodsService {
         var items = request.getItems();
         var itemsToEntity =
                 items.stream()
-                        .map(shopUnitImportDTO -> goodsMapper.importToShopUnit(shopUnitImportDTO, request.getUpdateDate()))
-                        .collect(groupingBy(ShopUnitDTO::getType));
+                        .map(shopUnitImportDTO ->
+                                goodsMapper
+                                        .importToShopUnit(shopUnitImportDTO, request.getUpdateDate()))
+                                        .collect(groupingBy(ShopUnitDTO::getType));
 
         var category = itemsToEntity.get(ShopUnitTypeDTO.CATEGORY);
         if (category != null) {
@@ -133,15 +133,14 @@ public class GoodsService {
                 .stream()
                 .map(goodsMapper::shopUnitToOffer)
                 .forEach(offer -> {
-                    if (offerService.getOfferByUUID(offer.getId()).isPresent())
-                    {
-                        if(dateTime != offer.getDate()){
-                        offerService.save(offer);
-                        historyService.save(new History()
-                                .setParent(offer)
-                                .setDate(dateTime)
-                                .setPrice(offer.getPrice()));}
-                        else {
+                    if (offerService.getOfferByUUID(offer.getId()).isPresent()) {
+                        if (dateTime != offer.getDate()) {
+                            offerService.save(offer);
+                            historyService.save(new History()
+                                    .setParent(offer)
+                                    .setDate(dateTime)
+                                    .setPrice(offer.getPrice()));
+                        } else {
                             throw new IncorrectDataException("Невалидная схема документа или входные данные не верны.");
                         }
                     }
@@ -168,5 +167,23 @@ public class GoodsService {
         if (category.getParentCategory() != null)
             setDate(date, category.getParentCategory().getId());
         categoryService.save(category);
+    }
+
+    public ShopUnitStatisticResponseDTO getSales(String dateStr) {
+       DateTimeFormatter formatter
+                = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss.SSS");
+        dateStr = dateStr.substring(0, dateStr.length() -1);
+        LocalDateTime one = LocalDateTime.parse(dateStr, formatter);
+        LocalDateTime two = one.minusHours(24);
+
+        var changes = historyService
+                .getHistoriesByData(two,one).orElseThrow(()-> new IncorrectDataException("e"));
+        var offers = changes.stream()
+                .map(History::getParent)
+                .map(goodsMapper::offerToShopUnitDto)
+                .map(goodsMapper::shopUnitDTOToStatDTO)
+                .collect(Collectors.toList());
+
+        return new ShopUnitStatisticResponseDTO(offers);
     }
 }

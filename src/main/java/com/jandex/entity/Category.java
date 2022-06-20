@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.summarizingLong;
 
 @Getter
 @Setter
@@ -56,29 +56,27 @@ public class Category {
     public void addParentAndChildren(Category parent) {
         this.setParentCategory(parent);
         if (parent.getChildren() == null) {
-            List<Category> childrens = new ArrayList<>();
-            childrens.add(this);
-            parent.setChildren(childrens);
+            List<Category> children = new ArrayList<>();
+            children.add(this);
+            parent.setChildren(children);
         } else {
             parent.getChildren().add(this);
         }
     }
 
     public Long getAvgPrice() {
-        if (children.size() == 0 || children == null){
+        if (children.size() == 0) {
             return this.price = (long) this.getOffers().stream()
                     .collect(summarizingLong(Offer::getPrice)).getAverage();
-        }else
-        {
-            var summingPrice = children.stream().collect(summingLong(Category::getAvgPriceOffers));
-            var countOffers = children.stream().collect(summingInt(Category::getCountOffers));
-            return this.price = summingPrice/ (countOffers == 0? 1: countOffers);
+        } else {
+            var summingPrice = (Long) children.stream().mapToLong(Category::getAvgPriceOffers).sum();
+            var countOffers = (Integer) children.stream().mapToInt(Category::getCountOffers).sum();
+            return this.price = summingPrice / (countOffers == 0 ? 1 : countOffers);
         }
     }
 
     public Long getAvgPriceOffers() {
-        return (long) this.getOffers().stream()
-                    .collect(summingLong(Offer::getPrice));
+        return (long) (Long) this.getOffers().stream().mapToLong(Offer::getPrice).sum();
 
     }
 
@@ -86,6 +84,4 @@ public class Category {
 
         return this.getOffers().size();
     }
-
-
 }

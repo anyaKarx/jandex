@@ -2,10 +2,14 @@ package com.jandex.service;
 
 
 import com.jandex.entity.History;
-import com.jandex.entity.Offer;
 import com.jandex.repository.HistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -16,8 +20,8 @@ public class HistoryService {
         return historyRepository.save(history);
     }
 
-    public void deleteAllById(Offer parent) {
-        historyRepository.deleteAllByParent(parent);
+    public Optional<List<History>> getHistoriesByData(LocalDateTime date, LocalDateTime date2)
+    {
+        return historyRepository.findAllByDateBetween(date, date2);
     }
-
 }
