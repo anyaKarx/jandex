@@ -7,6 +7,7 @@ import com.jandex.dto.ShopUnitTypeDTO;
 import com.jandex.entity.Category;
 import com.jandex.entity.History;
 import com.jandex.exception.IncorrectDataException;
+import com.jandex.exception.NotFoundDataException;
 import com.jandex.mapper.GoodsMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -43,19 +44,22 @@ public class GoodsService {
                     .resultCode(HttpStatus.NOT_FOUND.value())
                     .resultMessage("Категория/товар не найден.")
                     .build();
-        } else recursDelete(categoryService.getCategoryByUUID(id).get());
+        } else {
+            var category = categoryService.getCategoryByUUID(id).get();
+            categoryService.delete(category);
+        }
         return ResponseDTO.builder().resultCode(HttpStatus.OK.value()).resultMessage(HttpStatus.OK.name()).build();
     }
 
     public ShopUnitDTO getNodes(UUID id) {
-        ShopUnitDTO shopUnitDTO = new ShopUnitDTO();
+        ShopUnitDTO shopUnitDTO;
         if (categoryService.getCategoryByUUID(id).isEmpty()) {
             if (offerService.getOfferByUUID(id).isEmpty()) {
-                throw new IncorrectDataException("Категория/товар не найден.");
+                throw new NotFoundDataException("Категория/товар не найден.");
             } else {
                 shopUnitDTO = goodsMapper.offerToShopUnitDto(offerService.getOfferByUUID(id).get());
             }
-            throw new IncorrectDataException("Категория/товар не найден.");
+            throw new NotFoundDataException("Категория/товар не найден.");
         } else {
             shopUnitDTO = categoryToShopUnitDTO(categoryService.getCategoryByUUID(id).get());
         }
@@ -63,19 +67,18 @@ public class GoodsService {
     }
 
     public ShopUnitDTO categoryToShopUnitDTO(Category category) {
-        ShopUnitDTO shopUnitDTO = goodsMapper.categoryToShopUnitDto(category);
+        category = categoryService.save(category);
+        ShopUnitDTO categoryExport = goodsMapper.categoryToShopUnitDto(category);
         category.getOffers().stream()
                 .map(goodsMapper::offerToShopUnitDto)
-                .map(shopUnit -> shopUnitDTO.addChildrenItem(shopUnit));
+                .forEach(categoryExport::addChildrenItem);
+        var priceCategory = category.getAvgPrice();
+        categoryExport.setPrice(priceCategory);
         for (int i = 0; i < category.getChildren().size(); i++) {
-            var tempCategory = category.getChildren().get(i);
-            var shopUnitCategory = goodsMapper.categoryToShopUnitDto(tempCategory);
-            tempCategory.getOffers().stream()
-                    .map(goodsMapper::offerToShopUnitDto)
-                    .map(shopUnit -> shopUnitCategory.addChildrenItem(shopUnit));
-            shopUnitDTO.addChildrenItem(shopUnitCategory);
+            var childCategoryExport = categoryToShopUnitDTO(category.getChildren().get(i));
+            categoryExport.addChildrenItem(childCategoryExport);
         }
-        return shopUnitDTO;
+        return categoryExport;
     }
 
     @Transactional
@@ -106,13 +109,21 @@ public class GoodsService {
                 .map(goodsMapper::shopUnitToCategory)
                 .forEach(category ->
                 {
-                    if (category.getParentId() != null) {
-                        var parent = categoryService
-                                .getCategoryByUUID(category.getParentId())
-                                .orElseThrow(() -> new IncorrectDataException("e"));
-                        category.addParentAndChildren(parent);
+                    if (categoryService.getCategoryByUUID(category.getId()).isPresent()) {
+                        var old = categoryService.getCategoryByUUID(category.getId()).get();
+                        old.setName(category.getName());
+                        old.setDate(dateTime);
+                        categoryService.save(old);
+                    } else {
+                        if (category.getParentId() != null) {
+                            var parent = categoryService
+                                    .getCategoryByUUID(category.getParentId())
+                                    .orElseThrow(() -> new IncorrectDataException("e"));
+                            category.addParentAndChildren(parent);
+                            category.setDate(dateTime);
+                        }
+                        categoryService.save(category);
                     }
-                    categoryService.save(category);
                 });
     }
 
@@ -122,10 +133,23 @@ public class GoodsService {
                 .stream()
                 .map(goodsMapper::shopUnitToOffer)
                 .forEach(offer -> {
+                    if (offerService.getOfferByUUID(offer.getId()).isPresent())
+                    {
+                        if(dateTime != offer.getDate()){
+                        offerService.save(offer);
+                        historyService.save(new History()
+                                .setParent(offer)
+                                .setDate(dateTime)
+                                .setPrice(offer.getPrice()));}
+                        else {
+                            throw new IncorrectDataException("Невалидная схема документа или входные данные не верны.");
+                        }
+                    }
                     var parent = categoryService
                             .getCategoryByUUID(offer.getParent().getId())
                             .orElseThrow(() -> new IncorrectDataException("e"));
                     parent.getOffers().add(offer);
+                    setDate(dateTime, parent.getId());
                     parent = categoryService.save(parent);
                     offer.setParent(parent);
                     offerService.save(offer);
@@ -136,16 +160,13 @@ public class GoodsService {
                 });
     }
 
-
-    @Transactional
-    public void recursDelete(Category category) {
-        category = categoryService.save(category);
-        categoryService.delete(category);
+    public void setDate(LocalDateTime date, UUID parentId) {
+        var category = categoryService
+                .getCategoryByUUID(parentId)
+                .orElseThrow(() -> new IncorrectDataException("e"));
+        category.setDate(date);
+        if (category.getParentCategory() != null)
+            setDate(date, category.getParentCategory().getId());
+        categoryService.save(category);
     }
-
-//    public ShopUnitDTO getNodes(Category category)
-//    {
-//        var item = new ShopUnitDTO();
-//        item.setDate(category.setDate()).setId()
-//    }
 }

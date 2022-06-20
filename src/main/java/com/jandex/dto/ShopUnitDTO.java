@@ -1,10 +1,12 @@
 package com.jandex.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import javax.validation.Valid;
@@ -14,7 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Data
+@Setter
+@Getter
 @Accessors(chain = true)
 @NoArgsConstructor
 @AllArgsConstructor
@@ -33,6 +36,7 @@ public class ShopUnitDTO {
     @Schema(example = "2022-05-28T21:12:01Z", required = true, description = "Время последнего обновления элемента.")
     @NotNull
     @Valid
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     private LocalDateTime date;
 
     @JsonProperty("parentId")

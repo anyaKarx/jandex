@@ -3,51 +3,51 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
 
-<!--    <changeSet id="171616361377-1" author="Anya">-->
-<!--        <createTable tableName="category">-->
-<!--            <column name="id" type="uuid">-->
-<!--                <constraints primaryKey="true" primaryKeyName="category_id_pk" nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="name" type="varchar(255)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="date" type="datetime">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="price" type="numeric"/>-->
-<!--        </createTable>-->
-<!--    </changeSet>-->
+    <changeSet id="171616361377-1" author="Anya">
+        <createTable tableName="category">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" primaryKeyName="category_id_pk" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="price" type="numeric"/>
+        </createTable>
+    </changeSet>
 
-<!--    <changeSet id="171616361377-2" author="Anya">-->
-<!--        <createTable tableName="history">-->
-<!--            <column name="id" type="numeric">-->
-<!--                <constraints primaryKey="true" primaryKeyName="history_id_pk" nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="price" type="numeric">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="date" type="datetime">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--        </createTable>-->
-<!--    </changeSet>-->
+    <changeSet id="171616361377-2" author="Anya">
+        <createTable tableName="history">
+            <column name="id" type="numeric">
+                <constraints primaryKey="true" primaryKeyName="history_id_pk" nullable="false"/>
+            </column>
+            <column name="price" type="numeric">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
 
-<!--    <changeSet id="171616361377-3" author="Anya">-->
-<!--        <createTable tableName="offer">-->
-<!--            <column name="id" type="uuid">-->
-<!--                <constraints primaryKey="true" primaryKeyName="offer_id_pk" nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="name" type="varchar(255)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="date" type="datetime">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="price" type="numeric">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--        </createTable>-->
-<!--    </changeSet>-->
+    <changeSet id="171616361377-3" author="Anya">
+        <createTable tableName="offer">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" primaryKeyName="offer_id_pk" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="price" type="numeric">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
 
 <!--    <changeSet id="171616361377-4" author="anya">-->
 <!--        <sql>-->

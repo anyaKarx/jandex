@@ -1,5 +1,8 @@
 package com.jandex.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -11,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static java.util.stream.Collectors.summarizingLong;
+import static java.util.stream.Collectors.*;
 
 @Getter
 @Setter
@@ -28,6 +31,7 @@ public class Category {
     private String name;
 
     @Column(name = "date", nullable = false)
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     private LocalDateTime date;
 
     @Transient
@@ -37,13 +41,16 @@ public class Category {
     private Long price;
 
     @OneToMany(mappedBy = "parent", fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
+    @JsonManagedReference
     private List<Offer> offers = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "parent_id")
+    @JsonBackReference
     private Category parentCategory;
 
-    @OneToMany(mappedBy = "parentCategory", fetch = FetchType.EAGER, cascade = CascadeType.MERGE, orphanRemoval = true)
+    @OneToMany(mappedBy = "parentCategory", fetch = FetchType.LAZY, cascade = CascadeType.MERGE, orphanRemoval = true)
+    @JsonManagedReference
     private List<Category> children = new ArrayList<>();
 
     public void addParentAndChildren(Category parent) {
@@ -58,7 +65,27 @@ public class Category {
     }
 
     public Long getAvgPrice() {
-        return (long) this.getOffers().stream()
-                .collect(summarizingLong(Offer::getPrice)).getAverage();
+        if (children.size() == 0 || children == null){
+            return this.price = (long) this.getOffers().stream()
+                    .collect(summarizingLong(Offer::getPrice)).getAverage();
+        }else
+        {
+            var summingPrice = children.stream().collect(summingLong(Category::getAvgPriceOffers));
+            var countOffers = children.stream().collect(summingInt(Category::getCountOffers));
+            return this.price = summingPrice/ (countOffers == 0? 1: countOffers);
+        }
     }
+
+    public Long getAvgPriceOffers() {
+        return (long) this.getOffers().stream()
+                    .collect(summingLong(Offer::getPrice));
+
+    }
+
+    public int getCountOffers() {
+
+        return this.getOffers().size();
+    }
+
+
 }

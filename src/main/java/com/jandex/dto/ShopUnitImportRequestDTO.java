@@ -1,5 +1,6 @@
 package com.jandex.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,6 +21,7 @@ public class ShopUnitImportRequestDTO {
     private List<ShopUnitImportDTO> items;
 
     @Parameter(description = "Время обновления добавляемых товаров/категорий.")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     private LocalDateTime updateDate;
 
 }
