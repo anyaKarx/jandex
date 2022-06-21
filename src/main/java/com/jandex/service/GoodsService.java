@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -87,7 +88,7 @@ public class GoodsService {
                         .map(shopUnitImportDTO ->
                                 goodsMapper
                                         .importToShopUnit(shopUnitImportDTO, request.getUpdateDate()))
-                                        .collect(groupingBy(ShopUnitDTO::getType));
+                        .collect(groupingBy(ShopUnitDTO::getType));
 
         var category = itemsToEntity.get(ShopUnitTypeDTO.CATEGORY);
         if (category != null) {
@@ -109,7 +110,7 @@ public class GoodsService {
                 .map(goodsMapper::shopUnitToCategory)
                 .forEach(category ->
                 {
-                    if (categoryService.getCategoryByUUID(category.getId()).isPresent()) {
+                    if (categoryService.getCategoryByUUID(category.getId()).isPresent()) { // Проверка: записаны ли эти данные уже
                         var old = categoryService.getCategoryByUUID(category.getId()).get();
                         old.setName(category.getName());
                         old.setDate(dateTime);
@@ -133,29 +134,36 @@ public class GoodsService {
                 .stream()
                 .map(goodsMapper::shopUnitToOffer)
                 .forEach(offer -> {
-                    if (offerService.getOfferByUUID(offer.getId()).isPresent()) {
-                        if (dateTime != offer.getDate()) {
-                            offerService.save(offer);
-                            historyService.save(new History()
+                    if (offerService.getOfferByUUID(offer.getId()).isPresent()) { // Проверка: записаны ли эти данные уже
+                        if (dateTime != offerService.getOfferByUUID(offer.getId()).get().getDate()) {
+                            var oldOffer = offerService.getOfferByUUID(offer.getId()).get();
+                            var history = new History()
                                     .setParent(offer)
                                     .setDate(dateTime)
-                                    .setPrice(offer.getPrice()));
+                                    .setPrice(offer.getPrice());
+                            history = historyService.save(history);
+                            offer.setHistories(oldOffer.getHistories());
+                            offer.addHistory(history);
+                            offerService.save(offer);
                         } else {
                             throw new IncorrectDataException("Невалидная схема документа или входные данные не верны.");
                         }
+                    } else {
+                        var parent = categoryService
+                                .getCategoryByUUID(offer.getParent().getId())
+                                .orElseThrow(() -> new IncorrectDataException("e"));
+                        parent.getOffers().add(offer);
+                        setDate(dateTime, parent.getId());
+                        parent = categoryService.save(parent);
+                        offer.setParent(parent);
+                        var history = new History()
+                                .setParent(offer)
+                                .setDate(dateTime)
+                                .setPrice(offer.getPrice());
+                        offer = offerService.save(offer);
+                        history = historyService.save(history);
+                        offer.addHistory(history);
                     }
-                    var parent = categoryService
-                            .getCategoryByUUID(offer.getParent().getId())
-                            .orElseThrow(() -> new IncorrectDataException("e"));
-                    parent.getOffers().add(offer);
-                    setDate(dateTime, parent.getId());
-                    parent = categoryService.save(parent);
-                    offer.setParent(parent);
-                    offerService.save(offer);
-                    historyService.save(new History()
-                            .setParent(offer)
-                            .setDate(dateTime)
-                            .setPrice(offer.getPrice()));
                 });
     }
 
@@ -170,14 +178,12 @@ public class GoodsService {
     }
 
     public ShopUnitStatisticResponseDTO getSales(String dateStr) {
-       DateTimeFormatter formatter
-                = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss.SSS");
-        dateStr = dateStr.substring(0, dateStr.length() -1);
-        LocalDateTime one = LocalDateTime.parse(dateStr, formatter);
+
+        LocalDateTime one = stringToDate(dateStr);
         LocalDateTime two = one.minusHours(24);
 
         var changes = historyService
-                .getHistoriesByData(two,one).orElseThrow(()-> new IncorrectDataException("e"));
+                .getHistoriesByData(two, one).orElseThrow(() -> new IncorrectDataException("e"));
         var offers = changes.stream()
                 .map(History::getParent)
                 .map(goodsMapper::offerToShopUnitDto)
@@ -185,5 +191,38 @@ public class GoodsService {
                 .collect(Collectors.toList());
 
         return new ShopUnitStatisticResponseDTO(offers);
+    }
+
+    public ShopUnitStatisticResponseDTO getStatistic(UUID id, String dateStart, String dateEnd) {
+        LocalDateTime start = stringToDate(dateStart);
+        LocalDateTime end = stringToDate(dateEnd);
+        List<ShopUnitStatisticUnitDTO> result = new ArrayList<>();
+        if (categoryService.getCategoryByUUID(id).isEmpty()) {
+            if (offerService.getOfferByUUID(id).isEmpty()) {
+                throw new NotFoundDataException("Категория/товар не найден.");
+            } else {
+                var changes = historyService.getHistoriesByDataAndOffer(start, end, id).get();
+                List<ShopUnitDTO> statUnits = new ArrayList<>();
+                for (History chang : changes) {
+                    var offer = chang.getParent();
+                    var statUnit = goodsMapper.offerToShopUnitDto(offer);
+                    statUnit.setPrice(chang.getPrice());
+                    statUnit.setDate(chang.getDate());
+                    statUnits.add(statUnit);
+                }
+                result = statUnits.stream()
+                        .map(goodsMapper::shopUnitDTOToStatDTO).collect(Collectors.toList());
+            }
+        } else {
+            //TODO: в сервисе историй искать историю изменения категории пупупууу;
+        }
+        return new ShopUnitStatisticResponseDTO(result);
+    }
+
+    public LocalDateTime stringToDate(String date) {
+        DateTimeFormatter formatter
+                = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss.SSS");
+        date = date.substring(0, date.length() - 1);
+        return LocalDateTime.parse(date, formatter);
     }
 }

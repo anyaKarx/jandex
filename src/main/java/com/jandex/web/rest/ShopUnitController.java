@@ -87,4 +87,13 @@ public class ShopUnitController {
         return goodsService.getSales(date);
     }
 
+    @GetMapping("/node/{id}/statistic")
+    public ShopUnitStatisticResponseDTO statistic(@PathVariable UUID id,
+                                                  @RequestParam(name = "dateStart") String dateStart,
+                                                  @RequestParam(name = "dateEnd") String dateEnd)
+    {
+        return goodsService.getStatistic(id,dateStart,dateEnd);
+    }
+
+
 }

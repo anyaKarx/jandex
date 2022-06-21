@@ -4,6 +4,7 @@ import com.jandex.entity.Offer;
 import com.jandex.repository.OfferRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -13,9 +14,9 @@ import java.util.UUID;
 public class OfferService {
     private final OfferRepository offerRepository;
 
+    @Transactional
     public Offer save(Offer offer) {
-
-        return offerRepository.save(offer);
+        return offerRepository.saveAndFlush(offer);
     }
 
     public Optional<Offer> getOfferByUUID(UUID id) {
@@ -26,4 +27,4 @@ public class OfferService {
         offerRepository.deleteById(id);
     }
 
-   }
+}

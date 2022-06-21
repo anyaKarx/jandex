@@ -34,7 +34,7 @@ public class Category {
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     private LocalDateTime date;
 
-    @Transient
+    @Column(name = "parent_id")
     private UUID parentId;
 
     @Column(name = "price", nullable = true)
@@ -45,7 +45,7 @@ public class Category {
     private List<Offer> offers = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(name = "parent_id")
+    @JoinColumn(name = "parent_category_id", foreignKey = @ForeignKey(name = "fk_category_parent_category"))
     @JsonBackReference
     private Category parentCategory;
 

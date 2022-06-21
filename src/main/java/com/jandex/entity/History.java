@@ -8,6 +8,7 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -20,7 +21,7 @@ public class History {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "id_parent", nullable = false)
+    @JoinColumn(name = "id_parent", nullable = false, foreignKey = @ForeignKey(name = "fk_history_offer"))
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Offer parent;
 
@@ -29,6 +30,19 @@ public class History {
 
     @Column(name = "price", nullable = false)
     private Long price;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        History history = (History) o;
+        return id.equals(history.id) && date.equals(history.date) && price.equals(history.price);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, date, price);
+    }
 }
 
 

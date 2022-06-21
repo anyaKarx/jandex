@@ -6,7 +6,7 @@
     <changeSet id="171616361377-1" author="Anya">
         <createTable tableName="category">
             <column name="id" type="uuid">
-                <constraints primaryKey="true" primaryKeyName="category_id_pk" nullable="false"/>
+                <constraints primaryKey="true" primaryKeyName="category_id_pk" nullable="false" unique="true" uniqueConstraintName="category_uuid"/>
             </column>
             <column name="name" type="varchar(255)">
                 <constraints nullable="false"/>
@@ -15,27 +15,23 @@
                 <constraints nullable="false"/>
             </column>
             <column name="price" type="numeric"/>
+            <column name="parent_id" type="UUID">
+                <constraints unique="true" uniqueConstraintName="parent_id_unique"/>
+            </column>
         </createTable>
+
+        <addColumn tableName="category">
+            <column name="parent_category_id" type="UUID">
+                <constraints foreignKeyName="fk_category_parent_category" referencedTableName="category"
+                             referencedColumnNames="parent_id"/>
+            </column>
+        </addColumn>
     </changeSet>
 
     <changeSet id="171616361377-2" author="Anya">
-        <createTable tableName="history">
-            <column name="id" type="numeric">
-                <constraints primaryKey="true" primaryKeyName="history_id_pk" nullable="false"/>
-            </column>
-            <column name="price" type="numeric">
-                <constraints nullable="false"/>
-            </column>
-            <column name="date" type="datetime">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-    </changeSet>
-
-    <changeSet id="171616361377-3" author="Anya">
         <createTable tableName="offer">
             <column name="id" type="uuid">
-                <constraints primaryKey="true" primaryKeyName="offer_id_pk" nullable="false"/>
+                <constraints primaryKey="true" primaryKeyName="offer_id_pk" nullable="false" unique="true"/>
             </column>
             <column name="name" type="varchar(255)">
                 <constraints nullable="false"/>
@@ -47,38 +43,65 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+
+        <addColumn tableName="offer">
+            <column name="category_id" type="UUID">
+                <constraints foreignKeyName="fk_offer_category" referencedTableName="category"
+                             referencedColumnNames="id"/>
+            </column>
+        </addColumn>
     </changeSet>
 
-<!--    <changeSet id="171616361377-4" author="anya">-->
-<!--        <sql>-->
+    <changeSet id="171616361377-3" author="Anya">
+        <createTable tableName="history">
+            <column name="id" type="numeric">
+                <constraints primaryKey="true" primaryKeyName="history_id_pk" nullable="false" unique="true"/>
+            </column>
+            <column name="price" type="numeric">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
 
-<!--            CREATE OR REPLACE FUNCTION process_goods_audit() RETURNS TRIGGER AS $history$-->
-<!--            BEGIN-->
-<!--        &#45;&#45;-->
-<!--        &#45;&#45; Добавление строки в history, которая отражает изменение цены в товарах или категориях;-->
-<!--        &#45;&#45; для определения типа операции применяется специальная переменная TG_OP.-->
-<!--        &#45;&#45;-->
-<!--        IF (TG_OP = 'DELETE') THEN-->
-<!--            INSERT INTO history OLD.id, OLD.price, OLD.date;-->
-<!--            RETURN OLD;-->
-<!--            ELSIF (TG_OP = 'UPDATE') THEN-->
-<!--            INSERT INTO history NEW.id, NEW.price, NEW.date;-->
-<!--            RETURN NEW;-->
-<!--            ELSIF (TG_OP = 'INSERT') THEN-->
-<!--            INSERT INTO history NEW.id, NEW.price, NEW.date;-->
-<!--            RETURN NEW;-->
-<!--            END IF;-->
-<!--            RETURN NULL; &#45;&#45; возвращаемое значение для триггера AFTER игнорируется-->
-<!--            END;-->
-<!--            $history$ LANGUAGE plpgsql;-->
+        <addColumn tableName="history">
+            <column name="id_parent" type="UUID">
+                <constraints foreignKeyName="fk_history_offer" referencedTableName="offer" referencedColumnNames="id"/>
+            </column>
+        </addColumn>
+    </changeSet>
 
-<!--            CREATE TRIGGER history_audit-->
-<!--                AFTER INSERT OR UPDATE OR DELETE ON category-->
-<!--                FOR EACH ROW EXECUTE PROCEDURE process_goods_audit();-->
+    <!--    <changeSet id="171616361377-4" author="anya">-->
+    <!--        <sql>-->
 
-<!--            CREATE TRIGGER history_audit2-->
-<!--                AFTER INSERT OR UPDATE OR DELETE ON offer-->
-<!--                FOR EACH ROW EXECUTE PROCEDURE process_goods_audit();-->
-<!--        </sql>-->
-<!--    </changeSet>-->
+    <!--            CREATE OR REPLACE FUNCTION process_goods_audit() RETURNS TRIGGER AS $history$-->
+    <!--            BEGIN-->
+    <!--        &#45;&#45;-->
+    <!--        &#45;&#45; Добавление строки в history, которая отражает изменение цены в товарах или категориях;-->
+    <!--        &#45;&#45; для определения типа операции применяется специальная переменная TG_OP.-->
+    <!--        &#45;&#45;-->
+    <!--        IF (TG_OP = 'DELETE') THEN-->
+    <!--            INSERT INTO history OLD.id, OLD.price, OLD.date;-->
+    <!--            RETURN OLD;-->
+    <!--            ELSIF (TG_OP = 'UPDATE') THEN-->
+    <!--            INSERT INTO history NEW.id, NEW.price, NEW.date;-->
+    <!--            RETURN NEW;-->
+    <!--            ELSIF (TG_OP = 'INSERT') THEN-->
+    <!--            INSERT INTO history NEW.id, NEW.price, NEW.date;-->
+    <!--            RETURN NEW;-->
+    <!--            END IF;-->
+    <!--            RETURN NULL; &#45;&#45; возвращаемое значение для триггера AFTER игнорируется-->
+    <!--            END;-->
+    <!--            $history$ LANGUAGE plpgsql;-->
+
+    <!--            CREATE TRIGGER history_audit-->
+    <!--                AFTER INSERT OR UPDATE OR DELETE ON category-->
+    <!--                FOR EACH ROW EXECUTE PROCEDURE process_goods_audit();-->
+
+    <!--            CREATE TRIGGER history_audit2-->
+    <!--                AFTER INSERT OR UPDATE OR DELETE ON offer-->
+    <!--                FOR EACH ROW EXECUTE PROCEDURE process_goods_audit();-->
+    <!--        </sql>-->
+    <!--    </changeSet>-->
 </databaseChangeLog>

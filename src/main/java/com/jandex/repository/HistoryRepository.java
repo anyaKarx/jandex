@@ -11,9 +11,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface HistoryRepository extends JpaRepository<History, UUID> {
+public interface HistoryRepository extends JpaRepository<History, Long> {
 
     Optional<List<History>> findAllByDateBetween(LocalDateTime dateTime, LocalDateTime dateT);
+
+    Optional<List<History>> findAllByDateBetweenAndParent_Id(LocalDateTime dateTime, LocalDateTime dateT, UUID id);
 
     Optional<History> findAllByDateContains(LocalDateTime date);
     void deleteAllByParent(Offer parent);

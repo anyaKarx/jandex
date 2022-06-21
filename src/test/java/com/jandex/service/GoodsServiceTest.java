@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -79,5 +80,40 @@ public class GoodsServiceTest {
         var result = goodsService.getNodes(category.getId());
 
         assertEquals(category.getId(), result.getId());
+    }
+
+
+    @Test
+    public void statsOfferTest() {
+
+        var category = BuilderHelper.createShopUnitImportDTOCategory();
+        var category1 = BuilderHelper.createShopUnitImportDTOCategory().setParentId(category.getId());
+        var category2 = BuilderHelper.createShopUnitImportDTOCategory().setParentId(category.getId());
+        var category3 = BuilderHelper.createShopUnitImportDTOCategory().setParentId(category1.getId());
+
+        var offer = BuilderHelper.createShopUnitImportDTOOffer().setParentId(category2.getId());
+        var offer1 = BuilderHelper.createShopUnitImportDTOOffer().setParentId(category2.getId());
+        var offer2 = BuilderHelper.createShopUnitImportDTOOffer().setParentId(category2.getId());
+        var offer3 = BuilderHelper.createShopUnitImportDTOOffer().setParentId(category2.getId());
+        var offer4 = BuilderHelper.createShopUnitImportDTOOffer().setParentId(category3.getId());
+        var offer5 = BuilderHelper.createShopUnitImportDTOOffer().setParentId(category3.getId());
+        List<ShopUnitImportDTO> importDTOList = new ArrayList<>(List.of(category,category1,category2,category3, offer,
+                offer1,offer2,offer3,offer4, offer5));
+
+        var request = BuilderHelper.createShopUnitImportRequestDTO(importDTOList);
+
+        goodsService.importsData(request);
+         offer = offer.setPrice(10000L);
+         offer1 = offer1.setPrice(Long.valueOf(10060));
+         offer2 = offer2.setPrice(Long.valueOf(107));
+         offer3 = offer3.setPrice(Long.valueOf(108700));
+         offer4 = offer4.setPrice(Long.valueOf(56));
+        importDTOList = new ArrayList<>(List.of(offer,
+                offer1,offer2,offer3,offer4, offer5));
+        var request2 = BuilderHelper.createShopUnitImportRequestDTO(importDTOList).setUpdateDate(LocalDateTime.now().minusDays(8L));
+        goodsService.importsData(request2);
+         var result = goodsService.getStatistic(offer.getId(), LocalDateTime.now().minusDays(11L).toString().substring(0,24), LocalDateTime.now().minusDays(8L).toString().substring(0,24));
+
+        assertEquals(offer.getId(), result.getItems().get(0).getId());
     }
 }
