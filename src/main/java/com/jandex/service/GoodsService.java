@@ -38,16 +38,18 @@ public class GoodsService {
     public ResponseDTO delete(UUID id) {
         if (categoryService.getCategoryByUUID(id).isEmpty()) {
             if (offerService.getOfferByUUID(id).isEmpty()) {
-                return ResponseDTO.builder().resultCode(HttpStatus.NOT_FOUND.value()).resultMessage("Категория/товар не найден.").build();
+                throw new NotFoundDataException("Категория/товар не найден.");
             } else {
                 offerService.deleteByUUID(id);
             }
-            return ResponseDTO.builder().resultCode(HttpStatus.NOT_FOUND.value()).resultMessage("Категория/товар не найден.").build();
         } else {
             var category = categoryService.getCategoryByUUID(id).get();
             categoryService.delete(category);
         }
-        return ResponseDTO.builder().resultCode(HttpStatus.OK.value()).resultMessage(HttpStatus.OK.name()).build();
+        return ResponseDTO.builder()
+                .resultCode(HttpStatus.OK.value())
+                .resultMessage(HttpStatus.OK.name())
+                .build();
     }
 
     public ShopUnitDTO getNodes(UUID id) {
@@ -67,9 +69,9 @@ public class GoodsService {
     public ShopUnitDTO categoryToShopUnitDTO(Category category) {
         category = categoryService.save(category);
         ShopUnitDTO categoryExport = goodsMapper.categoryToShopUnitDto(category);
-        getOffers(category).stream().map(goodsMapper::offerToShopUnitDto).forEach(categoryExport::addChildrenItem);
-        var priceCategory = getAvgPrice(category);
-        categoryExport.setPrice(priceCategory);
+        getOffers(category).stream()
+                .map(goodsMapper::offerToShopUnitDto)
+                .forEach(categoryExport::addChildrenItem);
         var children = getChildren(category);
         for (Category child : children) {
             var childCategoryExport = categoryToShopUnitDTO(child);
@@ -80,11 +82,14 @@ public class GoodsService {
 
     public ResponseDTO importsData(@Valid ShopUnitImportRequestDTO request) {
         var items = request.getItems();
-        var itemsToEntity = items.stream().map(shopUnitImportDTO -> goodsMapper.importToShopUnit(shopUnitImportDTO, request.getUpdateDate())).collect(groupingBy(ShopUnitDTO::getType));
+        var itemsToEntity =
+                items.stream()
+                        .map(shopUnitImportDTO -> goodsMapper.importToShopUnit(shopUnitImportDTO, request.getUpdateDate()))
+                        .collect(groupingBy(ShopUnitDTO::getType));
 
-        var category = itemsToEntity.get(ShopUnitTypeDTO.CATEGORY);
-        if (category != null) {
-            saveCategory(category, request.getUpdateDate());
+        var categories = itemsToEntity.get(ShopUnitTypeDTO.CATEGORY);
+        if (categories != null) {
+            saveCategory(categories);
         }
 
         var offers = itemsToEntity.get(ShopUnitTypeDTO.OFFER);
@@ -95,46 +100,47 @@ public class GoodsService {
     }
 
 
-    public void saveCategory(List<ShopUnitDTO> itemsToEntity, LocalDateTime dateTime) {
-        itemsToEntity.stream().map(goodsMapper::shopUnitToCategory).forEach(category -> {
-            if (categoryService.getCategoryByUUID(category.getId()).isPresent()) { // Проверка: записаны ли эти данные уже
-                var old = categoryService.getCategoryByUUID(category.getId()).get();
-                old.setName(category.getName());
-                old.setDate(dateTime);
-                categoryService.save(old);
-            } else {
-                categoryService.save(category);
-            }
-        });
+    public void saveCategory(List<ShopUnitDTO> itemsToEntity) {
+        itemsToEntity.stream().map(goodsMapper::shopUnitToCategory)
+                .forEach(categoryService::save);
     }
 
     public void saveOffer(List<ShopUnitDTO> itemsToEntity, LocalDateTime dateTime) {
         itemsToEntity.stream().map(goodsMapper::shopUnitToOffer).forEach(offer -> {
-            if (offerService.getOfferByUUID(offer.getId()).isPresent()) { // Проверка: записаны ли эти данные уже
-                if (dateTime != offerService.getOfferByUUID(offer.getId()).get().getDate()) {
-                    offerService.update(offer.getDate(), offer.getPrice(), offer.getParent(), offer.getName(), offer.getId());
-                    var parent = categoryService.getCategoryByUUID(offer.getParent()).orElseThrow(() -> new IncorrectDataException("e"));
-                    setDateAndPrice(dateTime, parent.getId());
+            var parent = categoryService.getCategoryByUUID(offer.getParent())
+                    .orElseThrow(() ->
+                            new IncorrectDataException("Невалидная схема документа или входные данные не верны."));
 
+            if (offerService.getOfferByUUID(offer.getId()).isPresent()) { // Проверка: записаны ли эти данные уже
+                var oldDateTime =  offerService.getOfferByUUID(offer.getId()).get().getDate();
+                if (dateTime != oldDateTime) {
+                    offerService.update(offer.getDate(), offer.getPrice(),
+                            offer.getParent(), offer.getName(), offer.getId());
                 } else {
                     throw new IncorrectDataException("Невалидная схема документа или входные данные не верны.");
                 }
             } else {
                 offerService.save(offer);
-                var parent = categoryService.getCategoryByUUID(offer.getParent()).orElseThrow(() -> new IncorrectDataException("e"));
-                setDateAndPrice(dateTime, parent.getId());
-
             }
+
+            setDateAndPrice(dateTime, parent.getId());
         });
     }
 
     public ShopUnitStatisticResponseDTO getSales(String dateStr) {
 
-        LocalDateTime one = stringToDate(dateStr);
-        LocalDateTime two = one.minusHours(24);
+        LocalDateTime end = stringToDate(dateStr);
+        LocalDateTime start = end.minusHours(24);
 
-        var changes = historyService.getHistoriesByData(two, one).orElseThrow(() -> new IncorrectDataException("e"));
-        var offers = changes.stream().map(History::getParent).map(offerService::getOfferByUUID).map(Optional::get).map(goodsMapper::offerToShopUnitDto).map(goodsMapper::shopUnitDTOToStatDTO).collect(Collectors.toList());
+        var changes = historyService.getHistoriesByData(start, end)
+                .orElseThrow(() ->
+                        new IncorrectDataException("Невалидная схема документа или входные данные не верны."));
+        var offers = changes.stream().map(History::getParent)
+                .map(offerService::getOfferByUUID)
+                .map(Optional::get)
+                .map(goodsMapper::offerToShopUnitDto)
+                .map(goodsMapper::shopUnitDTOToStatDTO)
+                .collect(Collectors.toList());
 
         return new ShopUnitStatisticResponseDTO(offers);
     }
@@ -147,7 +153,8 @@ public class GoodsService {
             if (offerService.getOfferByUUID(id).isEmpty()) {
                 throw new NotFoundDataException("Категория/товар не найден.");
             } else {
-                var changes = historyService.getHistoriesByDataAndOffer(start, end, id).get();
+                var changes =
+                        historyService.getHistoriesByDataAndOffer(start, end, id).get();
                 List<ShopUnitDTO> statUnits = new ArrayList<>();
                 for (History chang : changes) {
                     var offer = offerService.getOfferByUUID(chang.getParent()).get();
@@ -156,10 +163,13 @@ public class GoodsService {
                     statUnit.setDate(chang.getDate());
                     statUnits.add(statUnit);
                 }
-                result = statUnits.stream().map(goodsMapper::shopUnitDTOToStatDTO).collect(Collectors.toList());
+                result = statUnits.stream()
+                        .map(goodsMapper::shopUnitDTOToStatDTO)
+                        .collect(Collectors.toList());
             }
         } else {
-            var changes = categoryHistoryService.getHistoriesByDataAndCategory(start, end, id).get();
+            var changes =
+                    categoryHistoryService.getHistoriesByDataAndCategory(start, end, id).get();
             List<ShopUnitDTO> statUnits = new ArrayList<>();
             for (CategoryHistory chang : changes) {
                 var category = categoryService.getCategoryByUUID(chang.getParent()).get();
@@ -168,7 +178,9 @@ public class GoodsService {
                 statUnit.setDate(chang.getDate());
                 statUnits.add(statUnit);
             }
-            result = statUnits.stream().map(goodsMapper::shopUnitDTOToStatDTO).collect(Collectors.toList());
+            result = statUnits.stream()
+                    .map(goodsMapper::shopUnitDTOToStatDTO)
+                    .collect(Collectors.toList());
         }
         return new ShopUnitStatisticResponseDTO(result);
     }
@@ -180,7 +192,9 @@ public class GoodsService {
     }
 
     public void setDateAndPrice(LocalDateTime date, UUID parentId) {
-        var category = categoryService.getCategoryByUUID(parentId).orElseThrow(() -> new IncorrectDataException("e"));
+        var category = categoryService.getCategoryByUUID(parentId)
+                .orElseThrow(() ->
+                        new IncorrectDataException("Невалидная схема документа или входные данные не верны."));
         category.setDate(date);
         category.setPrice(getAvgPrice(category));
         if (category.getParentId() != null) setDateAndPrice(date, category.getParentId());
@@ -202,7 +216,9 @@ public class GoodsService {
             if (offers.isEmpty()) {
                 return (long) 0;
             } else {
-                return (long) offers.stream().collect(summarizingLong(Offer::getPrice)).getAverage();
+                return (long) offers.stream()
+                        .collect(summarizingLong(Offer::getPrice))
+                        .getAverage();
             }
         } else {
             Long priceOffers;
@@ -211,19 +227,26 @@ public class GoodsService {
                 priceOffers = (long) 0;
                 countChildOffers = 0;
             } else {
-                priceOffers = (long) offers.stream().collect(summarizingLong(Offer::getPrice)).getAverage();
+                priceOffers = (long) offers.stream()
+                        .collect(summarizingLong(Offer::getPrice))
+                        .getAverage();
                 countChildOffers = offers.size();
             }
-            var summingPrice = (Long) children.stream().mapToLong(this::getAvgPriceOffers).sum() + priceOffers;
-            var countOffers = (Integer) children.stream().mapToInt(this::getCountOffers).sum() + countChildOffers;
+            var summingPrice = (Long) children.stream()
+                    .mapToLong(this::getAvgPriceOffers)
+                    .sum() + priceOffers;
+            var countOffers = (Integer) children.stream()
+                    .mapToInt(this::getCountOffers)
+                    .sum() + countChildOffers;
             return summingPrice / (countOffers == 0 ? 1 : countOffers);
         }
     }
 
     public Long getAvgPriceOffers(Category category) {
         var offers = offerService.findOffersByParent(category).get();
-        return offers.stream().mapToLong(Offer::getPrice).sum();
-
+        return offers.stream()
+                .mapToLong(Offer::getPrice)
+                .sum();
     }
 
     public int getCountOffers(Category category) {
