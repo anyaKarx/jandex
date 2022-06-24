@@ -3,6 +3,7 @@ package com.jandex.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.*;
+import lombok.experimental.Accessors;
 import org.springframework.lang.Nullable;
 
 import javax.validation.constraints.NotNull;
@@ -13,6 +14,7 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Accessors(chain = true)
 public class ShopUnitImportDTO {
     @JsonProperty("id")
     @Parameter(description = "Уникальный идентификатор")

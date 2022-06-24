@@ -8,8 +8,6 @@ import lombok.experimental.Accessors;
 @Setter
 @Builder
 @Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 public class ResponseDTO {
     @Schema(description = "Код ответа")
     private int resultCode;

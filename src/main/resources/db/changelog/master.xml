@@ -3,4 +3,142 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
 
+    <changeSet id="171616361377-1" author="Anya">
+        <createTable tableName="category">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" primaryKeyName="category_id_pk" nullable="false" unique="true" uniqueConstraintName="category_uuid"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="price" type="numeric"/>
+            <column name="parent" type="UUID">
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="category" baseColumnNames="parent"
+                                 constraintName="fk_category_parent_category"
+                                 referencedTableName="category" referencedColumnNames="id"
+                                 onDelete ="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="171616361377-2" author="Anya">
+        <createTable tableName="offer">
+            <column name="id" type="uuid" >
+                <constraints primaryKey="true" primaryKeyName="offer_id_pk" nullable="false" unique="true"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="price" type="numeric">
+                <constraints nullable="false"/>
+            </column>
+            <column name="parent" type="UUID">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="offer" baseColumnNames="parent"
+                                 constraintName="fk_offer_parent_category"
+                                 referencedTableName="category" referencedColumnNames="id"
+                                 onDelete ="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="171616361377-3" author="Anya">
+        <createTable tableName="history">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="history_id_pk" nullable="false" unique="true"/>
+            </column>
+            <column name="price" type="numeric">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="id_parent" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="history" baseColumnNames="id_parent"
+                                 constraintName="fk_offer_history"
+                                 referencedTableName="offer" referencedColumnNames="id"
+                                 onDelete ="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="171616361377-4" author="Anya">
+        <createTable tableName="category_history">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="category_history_id_pk" nullable="false" unique="true"/>
+            </column>
+            <column name="avg_price" type="bigint">
+            </column>
+            <column name="date" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="id_parent" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="category_history" baseColumnNames="id_parent"
+                                 constraintName="fk_history_category"
+                                 referencedTableName="category" referencedColumnNames="id"
+                                 onDelete ="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="171616361377-5" author="anya">
+        <createProcedure>
+                CREATE OR REPLACE FUNCTION process_goods_audit() RETURNS TRIGGER AS
+                $$
+                BEGIN
+                IF (TG_OP = 'UPDATE') THEN
+                INSERT INTO history(id_parent, price, date) SELECT  NEW.id, NEW.price, NEW.date;
+                RETURN NEW;
+                ELSIF (TG_OP = 'INSERT') THEN
+               INSERT INTO history(id_parent, price, date) SELECT  NEW.id, NEW.price, NEW.date;
+                RETURN NEW;
+                END IF;
+                RETURN NULL; -- возвращаемое значение для триггера AFTER игнорируется
+                END;
+                $$ LANGUAGE plpgsql;
+        </createProcedure>
+
+        <sql>
+                CREATE TRIGGER history_audit
+                    AFTER INSERT OR UPDATE ON public.offer
+                    FOR EACH ROW EXECUTE PROCEDURE process_goods_audit();
+        </sql>
+
+        </changeSet>
+
+    <changeSet id="171616361377-6" author="anya">
+        <createProcedure>
+            CREATE OR REPLACE FUNCTION process_category_audit() RETURNS TRIGGER AS
+                $$
+            BEGIN
+                IF (TG_OP = 'UPDATE') THEN
+                INSERT INTO category_history(id_parent, avg_price, date) SELECT  NEW.id, NEW.price, NEW.date;
+            RETURN NEW;
+            ELSIF (TG_OP = 'INSERT') THEN
+               INSERT INTO category_history(id_parent, avg_price, date) SELECT  NEW.id, NEW.price, NEW.date;
+            RETURN NEW;
+            END IF;
+            RETURN NULL; -- возвращаемое значение для триггера AFTER игнорируется
+            END;
+                $$ LANGUAGE plpgsql;
+        </createProcedure>
+
+        <sql>
+            CREATE TRIGGER category_history_audit
+                AFTER INSERT OR UPDATE ON public.category
+                                    FOR EACH ROW EXECUTE PROCEDURE process_category_audit();
+        </sql>
+
+    </changeSet>
 </databaseChangeLog>
