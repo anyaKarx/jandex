@@ -11,7 +11,6 @@ import java.util.UUID;
 
 @Repository
 public interface HistoryRepository extends JpaRepository<History, Long> {
-
     Optional<List<History>> findAllByDateBetween(LocalDateTime dateTime, LocalDateTime dateT);
 
     Optional<List<History>> findAllByDateBetweenAndParent_Id(LocalDateTime dateTime, LocalDateTime dateT, UUID id);

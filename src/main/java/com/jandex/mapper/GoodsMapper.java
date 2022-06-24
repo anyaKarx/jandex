@@ -20,9 +20,7 @@ public interface GoodsMapper {
     ShopUnitDTO importToShopUnit(ShopUnitImportDTO shopUnitImportDTO, LocalDateTime date);
 
     @Mapping(target = "id", source = "id")
-   // @Mapping(target = "offers", ignore = true)
     @Mapping(target = "date", source = "date")
-    //@Mapping(target = "parentCategory", ignore = true)
     Category shopUnitToCategory(ShopUnitDTO shopUnitDTO);
 
     @Mapping(target = "id", source = "id")

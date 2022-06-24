@@ -9,7 +9,5 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface CategoryHistoryRepository extends JpaRepository<CategoryHistory, UUID> {
-    Optional<List<CategoryHistory>> findAllByDateBetween(LocalDateTime dateTime, LocalDateTime dateT);
-
     Optional<List<CategoryHistory>> findAllByDateBetweenAndParent_Id(LocalDateTime dateTime, LocalDateTime dateT, UUID id);
 }

@@ -22,12 +22,11 @@ public class CategoryService {
         return categoryRepository.findById(id);
     }
 
-    public Optional<List<Category>> getChildren(Category parent)
-    {
+    public Optional<List<Category>> getChildren(Category parent) {
         return categoryRepository.findAllByParentId(parent.getId());
     }
 
-
-    public void delete(Category category){ categoryRepository.deleteById(category.getId());}
-
+    public void delete(Category category) {
+        categoryRepository.deleteById(category.getId());
+    }
 }

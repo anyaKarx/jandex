@@ -16,7 +16,6 @@ import java.util.UUID;
 public class HistoryService {
     private final HistoryRepository historyRepository;
 
-
     public History save(History history) {
         return historyRepository.save(history);
     }

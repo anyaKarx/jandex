@@ -3,12 +3,11 @@ package com.jandex.entity;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -20,10 +19,8 @@ public class History {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "id_parent", nullable = false, foreignKey = @ForeignKey(name = "fk_history_offer"))
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    private Offer parent;
+    @JoinColumn(name = "id_parent", nullable = false, foreignKey = @ForeignKey(name = "fk_offer_history"))
+    private UUID parent;
 
     @Column(name = "date", nullable = false)
     private LocalDateTime date;

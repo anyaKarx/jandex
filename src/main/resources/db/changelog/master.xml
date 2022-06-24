@@ -87,7 +87,7 @@
         </createTable>
 
         <addForeignKeyConstraint baseTableName="category_history" baseColumnNames="id_parent"
-                                 constraintName="fk_category_history_parent_category"
+                                 constraintName="fk_history_category"
                                  referencedTableName="category" referencedColumnNames="id"
                                  onDelete ="CASCADE"/>
     </changeSet>

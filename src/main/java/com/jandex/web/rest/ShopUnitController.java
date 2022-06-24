@@ -64,8 +64,7 @@ public class ShopUnitController {
                             content = @Content(schema = @Schema(implementation = ErrorDTO.class)))
             })
     @GetMapping("/nodes/{id}")
-    public ShopUnitDTO getNodes(@PathVariable UUID id)
-    {
+    public ShopUnitDTO getNodes(@PathVariable UUID id) {
         return goodsService.getNodes(id);
     }
 
@@ -82,18 +81,14 @@ public class ShopUnitController {
                             content = @Content(schema = @Schema(implementation = ErrorDTO.class)))
             })
     @GetMapping("/sales")
-    public ShopUnitStatisticResponseDTO sales(@RequestParam(name = "date") String date)
-    {
+    public ShopUnitStatisticResponseDTO sales(@RequestParam(name = "date") String date) {
         return goodsService.getSales(date);
     }
 
     @GetMapping("/node/{id}/statistic")
     public ShopUnitStatisticResponseDTO statistic(@PathVariable UUID id,
                                                   @RequestParam(name = "dateStart") String dateStart,
-                                                  @RequestParam(name = "dateEnd") String dateEnd)
-    {
-        return goodsService.getStatistic(id,dateStart,dateEnd);
+                                                  @RequestParam(name = "dateEnd") String dateEnd) {
+        return goodsService.getStatistic(id, dateStart, dateEnd);
     }
-
-
 }

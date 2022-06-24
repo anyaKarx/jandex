@@ -15,21 +15,11 @@ public class ExceptionController {
 
     @ExceptionHandler(IncorrectDataException.class)
     public ResponseEntity<ErrorDTO> incorrectData(IncorrectDataException exception) {
-        return new ResponseEntity<>(
-                ErrorDTO.builder()
-                        .code(HttpStatus.BAD_REQUEST.value())
-                        .message("Невалидная схема документа или входные данные не верны.")
-                        .build(),
-                HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(ErrorDTO.builder().code(HttpStatus.BAD_REQUEST.value()).message("Невалидная схема документа или входные данные не верны.").build(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(NotFoundDataException.class)
     public ResponseEntity<ErrorDTO> notFoundDataException(NotFoundDataException exception) {
-        return new ResponseEntity<>(
-                ErrorDTO.builder()
-                        .code(HttpStatus.NOT_FOUND.value())
-                        .message("Категория/товар не найден.")
-                        .build(),
-                HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(ErrorDTO.builder().code(HttpStatus.NOT_FOUND.value()).message("Категория/товар не найден.").build(), HttpStatus.NOT_FOUND);
     }
 }

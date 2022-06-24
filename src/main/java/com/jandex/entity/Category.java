@@ -34,44 +34,6 @@ public class Category {
     @Column(name = "parent")
     private UUID parentId;
 
-    @Column(name = "price", nullable = true)
+    @Column(name = "price")
     private Long price;
-
-//    @ManyToOne(fetch = FetchType.LAZY, optional = true)
-//    @JoinColumn(name = "parent_category_id", foreignKey = @ForeignKey(name = "fk_category_parent_category"))
-//    @JsonBackReference
-//    private Category parentCategory;
-
-//    @OneToMany(mappedBy = "parentCategory", fetch = FetchType.LAZY)
-//    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-//    @JsonManagedReference
-//    private List<Category> children = new ArrayList<>();
-//
-//    public void addParentAndChildren(Category parent) {
-//        this.setParentCategory(parent);
-//        if (parent.getChildren() == null) {
-//            List<Category> children = new ArrayList<>();
-//            children.add(this);
-//            parent.setChildren(children);
-//        } else {
-//            parent.getChildren().add(this);
-//        }
-//    }
-
-//    @LazyCollection(LazyCollectionOption.FALSE)
-//    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
-//    @JsonManagedReference
-//    private List<CategoryHistory> histories = new ArrayList<>();
-//
-//    public Category addHistory(CategoryHistory history) {
-//        if (this.getHistories() == null) {
-//            List<CategoryHistory> historyList = new ArrayList<>();
-//            historyList.add(history);
-//            this.setHistories(historyList);
-//        } else {
-//            this.getHistories().add(history);
-//        }
-//        return this;
-//    }
-
 }
