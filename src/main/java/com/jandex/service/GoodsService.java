@@ -248,7 +248,7 @@ public class GoodsService {
                 .mapToLong(Offer::getPrice)
                 .sum();
     }
-
+//коммент
     public int getCountOffers(Category category) {
         var offers = offerService.findOffersByParent(category).get();
         return offers.size();
