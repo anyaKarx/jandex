@@ -1,19 +1,23 @@
 package com.jandex.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "category")
+@Accessors(chain = true)
 @RequiredArgsConstructor
 public class Category {
     @Id
@@ -24,39 +28,12 @@ public class Category {
     private String name;
 
     @Column(name = "date", nullable = false)
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     private LocalDateTime date;
 
-    @ManyToOne
-    @JoinColumn(name = "parent_id",  nullable = true)
-    private Category parentId;
+    @Column(name = "parent")
+    private UUID parentId;
 
-    @Column(name = "price", nullable = false)
+    @Column(name = "price")
     private Long price;
-
-    @OneToMany(mappedBy = "parentId", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<Offer> offers = new ArrayList<>();
-
-    @OneToMany(mappedBy = "category", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<History> histories = new ArrayList<>();
-
-    public Category(UUID parentId) {
-        this.id = parentId;
-    }
-
-    public void setPrice(Long price) {
-        if (this.price != null) {
-            Long latestPrice = this.price;
-            latestPrice += price;
-            latestPrice /= offers.size()+1;
-            this.price = latestPrice;
-        } if ( price != null)
-            this.price = price;
-        else  this.price = Long.valueOf(0);
-    }
-
-    public void setParentId(UUID parentId) {
-        if(parentId != null)
-        this.parentId = new Category(parentId);
-        else this.parentId = null;
-    }
 }

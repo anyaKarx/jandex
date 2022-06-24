@@ -13,13 +13,13 @@ import java.util.UUID;
 @Setter
 @Entity
 @Accessors(chain = true)
-@Table(name = "history")
-public class History {
+@Table(name = "category_history")
+public class CategoryHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JoinColumn(name = "id_parent", nullable = false, foreignKey = @ForeignKey(name = "fk_offer_history"))
+    @JoinColumn(name = "id_parent", nullable = false, foreignKey = @ForeignKey(name = "fk_history_category"))
     private UUID parent;
 
     @Column(name = "date", nullable = false)
@@ -32,7 +32,7 @@ public class History {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        History history = (History) o;
+        CategoryHistory history = (CategoryHistory) o;
         return id.equals(history.id) && date.equals(history.date) && price.equals(history.price);
     }
 
@@ -41,5 +41,4 @@ public class History {
         return Objects.hash(id, date, price);
     }
 }
-
 

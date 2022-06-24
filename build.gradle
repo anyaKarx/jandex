@@ -35,13 +35,12 @@ repositories {
 }
 
 dependencies {
+    implementation "org.apache.commons:commons-lang3"
     implementation 'io.springfox:springfox-oas:3.0.0'
     implementation "org.springframework.boot:spring-boot-starter-data-jpa"
-    implementation "org.springframework.boot:spring-boot-starter-actuator"
     implementation "org.springframework.boot:spring-boot-starter-validation"
-    //implementation "org.springframework.boot:spring-boot-starter-security"
-    implementation "org.springframework.boot:spring-boot-starter-webflux"
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation "io.goodforgod:jackson-datetime-configuration:1.0.0"
 
     implementation "org.postgresql:postgresql"
 
@@ -58,6 +57,8 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+
 }
 
 tasks.named('test') {
