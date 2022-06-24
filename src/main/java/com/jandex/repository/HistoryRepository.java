@@ -1,7 +1,6 @@
 package com.jandex.repository;
 
 import com.jandex.entity.History;
-import com.jandex.entity.Offer;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -16,7 +15,4 @@ public interface HistoryRepository extends JpaRepository<History, Long> {
     Optional<List<History>> findAllByDateBetween(LocalDateTime dateTime, LocalDateTime dateT);
 
     Optional<List<History>> findAllByDateBetweenAndParent_Id(LocalDateTime dateTime, LocalDateTime dateT, UUID id);
-
-    Optional<History> findAllByDateContains(LocalDateTime date);
-    void deleteAllByParent(Offer parent);
 }

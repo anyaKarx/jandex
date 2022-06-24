@@ -4,7 +4,6 @@ import com.jandex.entity.Category;
 import com.jandex.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,15 +18,16 @@ public class CategoryService {
         return categoryRepository.save(category);
     }
 
-    public List<Category> findAll() {
-        return categoryRepository.findAll();
-    }
-
     public Optional<Category> getCategoryByUUID(UUID id) {
         return categoryRepository.findById(id);
     }
 
-    @Transactional
-    public void delete(Category category){ categoryRepository.delete(category);}
+    public Optional<List<Category>> getChildren(Category parent)
+    {
+        return categoryRepository.findAllByParentId(parent.getId());
+    }
+
+
+    public void delete(Category category){ categoryRepository.deleteById(category.getId());}
 
 }

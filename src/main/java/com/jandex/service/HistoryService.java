@@ -5,7 +5,6 @@ import com.jandex.entity.History;
 import com.jandex.repository.HistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,7 +16,7 @@ import java.util.UUID;
 public class HistoryService {
     private final HistoryRepository historyRepository;
 
-    @Transactional
+
     public History save(History history) {
         return historyRepository.save(history);
     }

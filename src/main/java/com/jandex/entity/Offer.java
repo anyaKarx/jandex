@@ -1,16 +1,16 @@
 package com.jandex.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -31,28 +31,11 @@ public class Offer {
     @JsonFormat(pattern = "yyyy-MM-ddTHH:mm:ss.ZZZ")
     private LocalDateTime date;
 
-    @ManyToOne
-    @JoinColumn(name = "category_id", foreignKey = @ForeignKey(name = "fk_offer_category"))
-    @JsonBackReference
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private Category parent;
+    private UUID parent;
 
     @Column(name = "price", nullable = false)
     private Long price;
-
-    @OneToMany(mappedBy = "parent", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<History> histories = new ArrayList<>();
-
-    public Offer addHistory(History history) {
-        if (this.getHistories() == null) {
-            List<History> historyList = new ArrayList<>();
-            historyList.add(history);
-            this.setHistories(historyList);
-        } else {
-            this.getHistories().add(history);
-        }
-        return this;
-    }
 
     @Override
     public boolean equals(Object o) {

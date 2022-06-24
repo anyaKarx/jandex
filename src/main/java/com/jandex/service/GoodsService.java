@@ -3,6 +3,7 @@ package com.jandex.service;
 import com.jandex.dto.*;
 import com.jandex.entity.Category;
 import com.jandex.entity.History;
+import com.jandex.entity.Offer;
 import com.jandex.exception.IncorrectDataException;
 import com.jandex.exception.NotFoundDataException;
 import com.jandex.mapper.GoodsMapper;
@@ -19,7 +20,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.*;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +29,7 @@ public class GoodsService {
     private final OfferService offerService;
     private final HistoryService historyService;
     private final GoodsMapper goodsMapper;
+    private final CategoryHistoryService categoryHistoryService;
 
     @Transactional
     public ResponseDTO delete(UUID id) {
@@ -68,19 +70,20 @@ public class GoodsService {
     public ShopUnitDTO categoryToShopUnitDTO(Category category) {
         category = categoryService.save(category);
         ShopUnitDTO categoryExport = goodsMapper.categoryToShopUnitDto(category);
-        category.getOffers().stream()
+        getOffers(category).stream()
                 .map(goodsMapper::offerToShopUnitDto)
                 .forEach(categoryExport::addChildrenItem);
-        var priceCategory = category.getAvgPrice();
+        var priceCategory = getAvgPrice(category);
         categoryExport.setPrice(priceCategory);
-        for (int i = 0; i < category.getChildren().size(); i++) {
-            var childCategoryExport = categoryToShopUnitDTO(category.getChildren().get(i));
+        var children = getChildren(category);
+        for (int i = 0; i < children.size(); i++) {
+            var childCategoryExport = categoryToShopUnitDTO(children.get(i));
             categoryExport.addChildrenItem(childCategoryExport);
         }
         return categoryExport;
     }
 
-    @Transactional
+
     public ResponseDTO importsData(@Valid ShopUnitImportRequestDTO request) {
         var items = request.getItems();
         var itemsToEntity =
@@ -103,7 +106,7 @@ public class GoodsService {
         return ResponseDTO.builder().resultCode(HttpStatus.OK.value()).resultMessage(HttpStatus.OK.name()).build();
     }
 
-    @Transactional
+
     public void saveCategory(List<ShopUnitDTO> itemsToEntity, LocalDateTime dateTime) {
         itemsToEntity
                 .stream()
@@ -116,19 +119,19 @@ public class GoodsService {
                         old.setDate(dateTime);
                         categoryService.save(old);
                     } else {
-                        if (category.getParentId() != null) {
-                            var parent = categoryService
-                                    .getCategoryByUUID(category.getParentId())
-                                    .orElseThrow(() -> new IncorrectDataException("e"));
-                            category.addParentAndChildren(parent);
-                            category.setDate(dateTime);
-                        }
+//                        if (category.getParentId() != null) {
+//                            var parent = categoryService
+//                                    .getCategoryByUUID(category.getParentId())
+//                                    .orElseThrow(() -> new IncorrectDataException("e"));
+//                            category.addParentAndChildren(parent);
+//                            category.setDate(dateTime);
+//                        }
                         categoryService.save(category);
                     }
                 });
     }
 
-    @Transactional
+
     public void saveOffer(List<ShopUnitDTO> itemsToEntity, LocalDateTime dateTime) {
         itemsToEntity
                 .stream()
@@ -136,45 +139,25 @@ public class GoodsService {
                 .forEach(offer -> {
                     if (offerService.getOfferByUUID(offer.getId()).isPresent()) { // Проверка: записаны ли эти данные уже
                         if (dateTime != offerService.getOfferByUUID(offer.getId()).get().getDate()) {
-                            var oldOffer = offerService.getOfferByUUID(offer.getId()).get();
-                            var history = new History()
-                                    .setParent(offer)
-                                    .setDate(dateTime)
-                                    .setPrice(offer.getPrice());
-                            history = historyService.save(history);
-                            offer.setHistories(oldOffer.getHistories());
-                            offer.addHistory(history);
-                            offerService.save(offer);
+                            offerService.update(offer.getDate(),offer.getPrice(),
+                                    offer.getParent(),offer.getName(),offer.getId());
+                            var parent = categoryService
+                                    .getCategoryByUUID(offer.getParent())
+                                    .orElseThrow(() -> new IncorrectDataException("e"));
+                            setDateAndPrice(dateTime, parent.getId());
+
                         } else {
                             throw new IncorrectDataException("Невалидная схема документа или входные данные не верны.");
                         }
                     } else {
+                        offerService.save(offer);
                         var parent = categoryService
-                                .getCategoryByUUID(offer.getParent().getId())
+                                .getCategoryByUUID(offer.getParent())
                                 .orElseThrow(() -> new IncorrectDataException("e"));
-                        parent.getOffers().add(offer);
-                        setDate(dateTime, parent.getId());
-                        parent = categoryService.save(parent);
-                        offer.setParent(parent);
-                        var history = new History()
-                                .setParent(offer)
-                                .setDate(dateTime)
-                                .setPrice(offer.getPrice());
-                        offer = offerService.save(offer);
-                        history = historyService.save(history);
-                        offer.addHistory(history);
+                        setDateAndPrice(dateTime, parent.getId());
+
                     }
                 });
-    }
-
-    public void setDate(LocalDateTime date, UUID parentId) {
-        var category = categoryService
-                .getCategoryByUUID(parentId)
-                .orElseThrow(() -> new IncorrectDataException("e"));
-        category.setDate(date);
-        if (category.getParentCategory() != null)
-            setDate(date, category.getParentCategory().getId());
-        categoryService.save(category);
     }
 
     public ShopUnitStatisticResponseDTO getSales(String dateStr) {
@@ -224,5 +207,76 @@ public class GoodsService {
                 = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss.SSS");
         date = date.substring(0, date.length() - 1);
         return LocalDateTime.parse(date, formatter);
+    }
+
+
+
+    public void setDateAndPrice(LocalDateTime date, UUID parentId) {
+        var category = categoryService
+                .getCategoryByUUID(parentId)
+                .orElseThrow(() -> new IncorrectDataException("e"));
+        category.setDate(date);
+        category.setPrice(getAvgPrice(category));
+        if (category.getParentId() != null)
+            setDateAndPrice(date, category.getParentId());
+        categoryService.save(category);
+    }
+
+    public List<Category> getChildren(Category parent)
+    {
+        return  categoryService.getChildren(parent).get();
+    }
+
+    public List<Offer> getOffers(Category parent)
+    {
+        return offerService.findOffersByParent(parent).get();
+    }
+
+    public Category getParentCategory(Category child)
+    {
+        return categoryService.getCategoryByUUID(child.getParentId()).get();
+    }
+
+    public Long getAvgPrice(Category category) {
+        var children = getChildren(category);
+        var offers = getOffers(category);
+        if (children.isEmpty()) {
+            if (offers.isEmpty()) {
+                return  (long)0;
+            }
+            else {
+                return  (long) offers.stream()
+                        .collect(summarizingLong(Offer::getPrice)).getAverage();
+            }
+        } else {
+            Long priceOffers;
+            Integer countChildOffers;
+            if(offers.isEmpty())
+            {
+                priceOffers =(long) 0;
+                countChildOffers = 0;
+            }else{
+                priceOffers = (long) offers.stream()
+                        .collect(summarizingLong(Offer::getPrice)).getAverage();
+                countChildOffers = offers.size();
+            }
+            var summingPrice = (Long) children.stream().mapToLong(categoryUnit -> {
+                return getAvgPriceOffers(categoryUnit);
+            }).sum() + priceOffers;
+            var countOffers = (Integer) children.stream().mapToInt(categoryUnit -> {
+                return getCountOffers(categoryUnit);}).sum() +countChildOffers;
+            return  summingPrice / (countOffers == 0 ? 1 : countOffers);
+        }
+    }
+
+    public Long getAvgPriceOffers(Category category) {
+        var offers = offerService.findOffersByParent(category).get();
+        return (long) (Long) offers.stream().mapToLong(Offer::getPrice).sum();
+
+    }
+
+    public int getCountOffers(Category category) {
+        var offers = offerService.findOffersByParent(category).get();
+        return offers.size();
     }
 }
