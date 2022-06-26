@@ -18,11 +18,16 @@ public class CategoryService {
         return categoryRepository.save(category);
     }
 
+    public Category update(Category category)
+    {
+        return categoryRepository.saveAndFlush(category);
+    }
+
     public Optional<Category> getCategoryByUUID(UUID id) {
         return categoryRepository.findById(id);
     }
 
-    public Optional<List<Category>> getChildren(Category parent) {
+    public List<Category> getChildren(Category parent) {
         return categoryRepository.findAllByParentId(parent.getId());
     }
 

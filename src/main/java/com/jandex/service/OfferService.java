@@ -28,7 +28,7 @@ public class OfferService {
         return offerRepository.findById(id);
     }
 
-    public Optional<List<Offer>> findOffersByParent(Category parent) {
+    public List<Offer> findOffersByParent(Category parent) {
         return offerRepository.findAllByParent(parent.getId());
     }
 

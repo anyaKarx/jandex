@@ -20,7 +20,7 @@ public class History {
     private Long id;
 
     @JoinColumn(name = "id_parent", nullable = false, foreignKey = @ForeignKey(name = "fk_offer_history"))
-    private UUID parent;
+    private UUID idParent;
 
     @Column(name = "date", nullable = false)
     private LocalDateTime date;

@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.UUID;
 
 import static com.jandex.config.Constans.*;
@@ -30,7 +31,7 @@ public class ShopUnitController {
                             content = @Content(schema = @Schema(implementation = ErrorDTO.class)))
             })
     @PostMapping("/imports")
-    public ResponseDTO saveUnitImport(@RequestBody ShopUnitImportRequestDTO request) {
+    public ResponseDTO saveUnitImport(@RequestBody @Valid ShopUnitImportRequestDTO request) {
         return goodsService.importsData(request);
     }
 
@@ -47,7 +48,7 @@ public class ShopUnitController {
                             content = @Content(schema = @Schema(implementation = ErrorDTO.class)))
             })
     @DeleteMapping("/delete/{id}")
-    public ResponseDTO delete(@PathVariable UUID id) {
+    public ResponseDTO delete(@PathVariable @Valid UUID id) {
         return goodsService.delete(id);
     }
 
@@ -64,14 +65,15 @@ public class ShopUnitController {
                             content = @Content(schema = @Schema(implementation = ErrorDTO.class)))
             })
     @GetMapping("/nodes/{id}")
-    public ShopUnitDTO getNodes(@PathVariable UUID id) {
+    public ShopUnitDTO getNodes(@PathVariable @Valid UUID id) {
         return goodsService.getNodes(id);
     }
 
-    @Operation(summary = "Получить информацию об элементе по идентификатору. ",
+    @Operation(summary = "Получение списка товаров, цена которых была обновлена за последние 24" +
+            " часа включительно [now() - 24h, now()] от времени переданном в запросе.  ",
             responses = {
                     @ApiResponse(responseCode = "200",
-                            description = "Информация об элементе.",
+                            description = "Информация об измененных товарах",
                             content = @Content(schema = @Schema(implementation = ShopUnitDTO.class))),
                     @ApiResponse(responseCode = "400",
                             description = "Невалидная схема документа или входные данные не верны.",
@@ -85,8 +87,21 @@ public class ShopUnitController {
         return goodsService.getSales(date);
     }
 
+    @Operation(summary = "Получение статистики (истории обновлений)" +
+            " по товару/категории за заданный полуинтервал [from, to). ",
+            responses = {
+                    @ApiResponse(responseCode = "200",
+                            description = "Информация об измененных товарах",
+                            content = @Content(schema = @Schema(implementation = ShopUnitDTO.class))),
+                    @ApiResponse(responseCode = "400",
+                            description = "Невалидная схема документа или входные данные не верны.",
+                            content = @Content(schema = @Schema(implementation = ErrorDTO.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Категория/товар не найден.",
+                            content = @Content(schema = @Schema(implementation = ErrorDTO.class)))
+            })
     @GetMapping("/node/{id}/statistic")
-    public ShopUnitStatisticResponseDTO statistic(@PathVariable UUID id,
+    public ShopUnitStatisticResponseDTO statistic(@PathVariable @Valid UUID id,
                                                   @RequestParam(name = "dateStart") String dateStart,
                                                   @RequestParam(name = "dateEnd") String dateEnd) {
         return goodsService.getStatistic(id, dateStart, dateEnd);

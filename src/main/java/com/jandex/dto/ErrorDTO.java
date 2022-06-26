@@ -8,8 +8,8 @@ import lombok.Data;
 @Builder
 public class ErrorDTO {
     @JsonProperty("code")
-    private Integer code;
+    private final Integer code;
 
     @JsonProperty("message")
-    private String message;
+    private final String message;
 }

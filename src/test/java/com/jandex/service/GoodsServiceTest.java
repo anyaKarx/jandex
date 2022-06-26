@@ -1,11 +1,10 @@
 package com.jandex.service;
 
-import com.jandex.JandexApplication;
+import com.jandex.AbstractIT;
 import com.jandex.dto.ShopUnitImportDTO;
 import com.utils.BuilderHelper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -14,8 +13,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SpringBootTest(classes = JandexApplication.class)
-public class GoodsServiceTest {
+public class GoodsServiceTest extends AbstractIT {
 
     @Autowired
     private GoodsService goodsService;
@@ -33,9 +31,7 @@ public class GoodsServiceTest {
     }
 
     @Test
-    @Transactional
-    public void deleteShopInitTest()
-    {
+    public void deleteShopInitTest() {
         var category = BuilderHelper.createShopUnitImportDTOCategory();
         var category1 = BuilderHelper.createShopUnitImportDTOCategory().setParentId(category.getId());
         var category2 = BuilderHelper.createShopUnitImportDTOCategory().setParentId(category.getId());
@@ -46,8 +42,8 @@ public class GoodsServiceTest {
         var offer2 = BuilderHelper.createShopUnitImportDTOOffer().setParentId(category2.getId());
         var offer3 = BuilderHelper.createShopUnitImportDTOOffer().setParentId(category2.getId());
         var offer4 = BuilderHelper.createShopUnitImportDTOOffer().setParentId(category3.getId());
-        List<ShopUnitImportDTO> importDTOList = new ArrayList<>(List.of(category,category1,category2,category3, offer,
-                offer1,offer2,offer3,offer4));
+        List<ShopUnitImportDTO> importDTOList = new ArrayList<>(List.of(category, category1, category2, category3, offer,
+                offer1, offer2, offer3, offer4));
 
         var request = BuilderHelper.createShopUnitImportRequestDTO(importDTOList);
 
@@ -70,8 +66,8 @@ public class GoodsServiceTest {
         var offer2 = BuilderHelper.createShopUnitImportDTOOffer().setParentId(category2.getId());
         var offer3 = BuilderHelper.createShopUnitImportDTOOffer().setParentId(category2.getId());
         var offer4 = BuilderHelper.createShopUnitImportDTOOffer().setParentId(category3.getId());
-        List<ShopUnitImportDTO> importDTOList = new ArrayList<>(List.of(category,category1,category2,category3, offer,
-                offer1,offer2,offer3,offer4));
+        List<ShopUnitImportDTO> importDTOList = new ArrayList<>(List.of(category, category1, category2, category3, offer,
+                offer1, offer2, offer3, offer4));
 
         var request = BuilderHelper.createShopUnitImportRequestDTO(importDTOList);
 
@@ -97,23 +93,63 @@ public class GoodsServiceTest {
         var offer3 = BuilderHelper.createShopUnitImportDTOOffer().setParentId(category2.getId());
         var offer4 = BuilderHelper.createShopUnitImportDTOOffer().setParentId(category3.getId());
         var offer5 = BuilderHelper.createShopUnitImportDTOOffer().setParentId(category3.getId());
-        List<ShopUnitImportDTO> importDTOList = new ArrayList<>(List.of(category,category1,category2,category3, offer,
-                offer1,offer2,offer3,offer4, offer5));
+        List<ShopUnitImportDTO> importDTOList = new ArrayList<>(List.of(category, category1, category2, category3, offer,
+                offer1, offer2, offer3, offer4, offer5));
 
         var request = BuilderHelper.createShopUnitImportRequestDTO(importDTOList);
 
         goodsService.importsData(request);
-         offer = offer.setPrice(10000L);
-         offer1 = offer1.setPrice(Long.valueOf(10060));
-         offer2 = offer2.setPrice(Long.valueOf(107));
-         offer3 = offer3.setPrice(Long.valueOf(108700));
-         offer4 = offer4.setPrice(Long.valueOf(56));
+        offer = offer.setPrice(10000L);
+        offer1 = offer1.setPrice(10060L);
+        offer2 = offer2.setPrice(107L);
+        offer3 = offer3.setPrice(108700L);
+        offer4 = offer4.setPrice(56L);
         importDTOList = new ArrayList<>(List.of(offer,
-                offer1,offer2,offer3,offer4, offer5));
+                offer1, offer2, offer3, offer4, offer5));
         var request2 = BuilderHelper.createShopUnitImportRequestDTO(importDTOList).setUpdateDate(LocalDateTime.now().minusDays(8L));
         goodsService.importsData(request2);
-         var result = goodsService.getStatistic(offer.getId(), LocalDateTime.now().minusDays(11L).toString().substring(0,24), LocalDateTime.now().minusDays(8L).toString().substring(0,24));
+        var result = goodsService.getStatistic(offer.getId(), LocalDateTime.now().minusDays(11L).toString().substring(0, 24), LocalDateTime.now().minusDays(8L).toString().substring(0, 24));
 
         assertEquals(offer.getId(), result.getItems().get(0).getId());
+    }
+
+    @Test
+    @Transactional
+    public void statsCategoryTest() {
+
+        var category = BuilderHelper.createShopUnitImportDTOCategory();
+        var category1 = BuilderHelper.createShopUnitImportDTOCategory().setParentId(category.getId());
+        var category2 = BuilderHelper.createShopUnitImportDTOCategory().setParentId(category.getId());
+        var category3 = BuilderHelper.createShopUnitImportDTOCategory().setParentId(category1.getId());
+
+        var offer = BuilderHelper.createShopUnitImportDTOOffer().setParentId(category2.getId());
+        var offer4 = BuilderHelper.createShopUnitImportDTOOffer().setParentId(category3.getId());
+        var offer5 = BuilderHelper.createShopUnitImportDTOOffer().setParentId(category3.getId());
+
+        offer = offer.setPrice(1500L);
+//        offer1 = offer1.setPrice(2000L);
+//        offer2 = offer2.setPrice(3000L);
+//        offer3 = offer3.setPrice(3400L);
+        offer4 = offer4.setPrice(1500L);
+        List<ShopUnitImportDTO> importDTOList = new ArrayList<>(List.of(category, category1, category2, category3, offer,
+                 offer4, offer5));
+
+        var request = BuilderHelper.createShopUnitImportRequestDTO(importDTOList);
+        goodsService.importsData(request);
+        offer = offer.setPrice(10000L);
+//        offer1 = offer1.setPrice(1006L);
+//        offer2 = offer2.setPrice(1057L);
+//        offer3 = offer3.setPrice(1087L);
+        offer4 = offer4.setPrice(5660L);
+        importDTOList = new ArrayList<>(List.of(offer,
+                offer4, offer5));
+        var request2 = BuilderHelper.createShopUnitImportRequestDTO(importDTOList).setUpdateDate(LocalDateTime.now().minusDays(8L));
+
+        var result = goodsService.getStatistic(category.getId(), LocalDateTime.now().minusDays(11L).toString().substring(0, 24), LocalDateTime.now().minusDays(8L).toString().substring(0, 24));
+        goodsService.importsData(request2);
+        result = goodsService.getStatistic(category.getId(), LocalDateTime.now().minusDays(11L).toString().substring(0, 24), LocalDateTime.now().minusDays(8L).toString().substring(0, 24));
+        Integer v = goodsService.v;
+        assertEquals(category.getId(), result.getItems().get(0).getId());
+        assertEquals(12, result.getItems().size());
     }
 }

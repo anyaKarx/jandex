@@ -11,6 +11,7 @@ import com.jandex.mapper.GoodsMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.Valid;
@@ -33,6 +34,7 @@ public class GoodsService {
     private final HistoryService historyService;
     private final GoodsMapper goodsMapper;
     private final CategoryHistoryService categoryHistoryService;
+    public static Integer v = 0;
 
     @Transactional
     public ResponseDTO delete(UUID id) {
@@ -112,8 +114,8 @@ public class GoodsService {
                             new IncorrectDataException("Невалидная схема документа или входные данные не верны."));
 
             if (offerService.getOfferByUUID(offer.getId()).isPresent()) { // Проверка: записаны ли эти данные уже
-                var oldDateTime =  offerService.getOfferByUUID(offer.getId()).get().getDate();
-                if (dateTime != oldDateTime) {
+                var oldDateTime = offerService.getOfferByUUID(offer.getId()).get().getDate();
+                if (!dateTime.equals( oldDateTime)) {
                     offerService.update(offer.getDate(), offer.getPrice(),
                             offer.getParent(), offer.getName(), offer.getId());
                 } else {
@@ -123,7 +125,7 @@ public class GoodsService {
                 offerService.save(offer);
             }
 
-            setDateAndPrice(dateTime, parent.getId());
+            recursVizov(dateTime, parent.getId());
         });
     }
 
@@ -132,10 +134,11 @@ public class GoodsService {
         LocalDateTime end = stringToDate(dateStr);
         LocalDateTime start = end.minusHours(24);
 
-        var changes = historyService.getHistoriesByData(start, end)
-                .orElseThrow(() ->
-                        new IncorrectDataException("Невалидная схема документа или входные данные не верны."));
-        var offers = changes.stream().map(History::getParent)
+        var changes = historyService.getHistoriesByData(start, end);
+        if (changes.isEmpty()) {
+            throw new IncorrectDataException("Невалидная схема документа или входные данные не верны.");
+        }
+        var offers = changes.stream().map(History::getIdParent)
                 .map(offerService::getOfferByUUID)
                 .map(Optional::get)
                 .map(goodsMapper::offerToShopUnitDto)
@@ -154,13 +157,13 @@ public class GoodsService {
                 throw new NotFoundDataException("Категория/товар не найден.");
             } else {
                 var changes =
-                        historyService.getHistoriesByDataAndOffer(start, end, id).get();
+                        historyService.getHistoriesByDataAndOffer(start, end, id);
                 List<ShopUnitDTO> statUnits = new ArrayList<>();
-                for (History chang : changes) {
-                    var offer = offerService.getOfferByUUID(chang.getParent()).get();
+                for (History change : changes) {
+                    var offer = offerService.getOfferByUUID(change.getIdParent()).get();
                     var statUnit = goodsMapper.offerToShopUnitDto(offer);
-                    statUnit.setPrice(chang.getPrice());
-                    statUnit.setDate(chang.getDate());
+                    statUnit.setPrice(change.getPrice());
+                    statUnit.setDate(change.getDate());
                     statUnits.add(statUnit);
                 }
                 result = statUnits.stream()
@@ -169,13 +172,13 @@ public class GoodsService {
             }
         } else {
             var changes =
-                    categoryHistoryService.getHistoriesByDataAndCategory(start, end, id).get();
+                    categoryHistoryService.getHistoriesByDataAndCategory(start, end, id);
             List<ShopUnitDTO> statUnits = new ArrayList<>();
-            for (CategoryHistory chang : changes) {
-                var category = categoryService.getCategoryByUUID(chang.getParent()).get();
+            for (CategoryHistory change : changes) {
+                var category = categoryService.getCategoryByUUID(change.getIdParent()).get();
                 var statUnit = goodsMapper.categoryToShopUnitDto(category);
-                statUnit.setPrice(chang.getPrice());
-                statUnit.setDate(chang.getDate());
+                statUnit.setPrice(change.getPrice());
+                statUnit.setDate(change.getDate());
                 statUnits.add(statUnit);
             }
             result = statUnits.stream()
@@ -188,25 +191,42 @@ public class GoodsService {
     public LocalDateTime stringToDate(String date) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss.SSS");
         date = date.substring(0, date.length() - 1);
-        return LocalDateTime.parse(date, formatter);
+        try {
+            return LocalDateTime.parse(date, formatter);
+        } catch (RuntimeException e) {
+            throw new IncorrectDataException("Невалидная схема документа или входные данные не верны.");
+        }
     }
 
-    public void setDateAndPrice(LocalDateTime date, UUID parentId) {
+    public void recursVizov(LocalDateTime date, UUID parentId)
+    {
         var category = categoryService.getCategoryByUUID(parentId)
                 .orElseThrow(() ->
                         new IncorrectDataException("Невалидная схема документа или входные данные не верны."));
+        setDateAndPrice(date, category);
+        while (category.getParentId() != null)
+        {
+            category =  categoryService.getCategoryByUUID(category.getParentId())
+                    .orElseThrow(() ->
+                            new IncorrectDataException("Невалидная схема документа или входные данные не верны."));
+            setDateAndPrice(date, category);
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void setDateAndPrice(LocalDateTime date, Category category) {
         category.setDate(date);
         category.setPrice(getAvgPrice(category));
-        if (category.getParentId() != null) setDateAndPrice(date, category.getParentId());
-        categoryService.save(category);
+        categoryService.update(category);
+        this.v++;
     }
 
     public List<Category> getChildren(Category parent) {
-        return categoryService.getChildren(parent).get();
+        return categoryService.getChildren(parent);
     }
 
     public List<Offer> getOffers(Category parent) {
-        return offerService.findOffersByParent(parent).get();
+        return offerService.findOffersByParent(parent);
     }
 
     public Long getAvgPrice(Category category) {
@@ -221,10 +241,10 @@ public class GoodsService {
                         .getAverage();
             }
         } else {
-            Long priceOffers;
-            Integer countChildOffers;
+            long priceOffers;
+            int countChildOffers;
             if (offers.isEmpty()) {
-                priceOffers = (long) 0;
+                priceOffers = 0;
                 countChildOffers = 0;
             } else {
                 priceOffers = (long) offers.stream()
@@ -232,10 +252,10 @@ public class GoodsService {
                         .getAverage();
                 countChildOffers = offers.size();
             }
-            var summingPrice = (Long) children.stream()
+            var summingPrice = children.stream()
                     .mapToLong(this::getAvgPriceOffers)
                     .sum() + priceOffers;
-            var countOffers = (Integer) children.stream()
+            var countOffers = children.stream()
                     .mapToInt(this::getCountOffers)
                     .sum() + countChildOffers;
             return summingPrice / (countOffers == 0 ? 1 : countOffers);
@@ -243,14 +263,15 @@ public class GoodsService {
     }
 
     public Long getAvgPriceOffers(Category category) {
-        var offers = offerService.findOffersByParent(category).get();
+        var offers = offerService.findOffersByParent(category);
         return offers.stream()
                 .mapToLong(Offer::getPrice)
                 .sum();
     }
-//коммент
+
+    //коммент
     public int getCountOffers(Category category) {
-        var offers = offerService.findOffersByParent(category).get();
+        var offers = offerService.findOffersByParent(category);
         return offers.size();
     }
 }

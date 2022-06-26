@@ -20,12 +20,12 @@ public class CategoryHistory {
     private Long id;
 
     @JoinColumn(name = "id_parent", nullable = false, foreignKey = @ForeignKey(name = "fk_history_category"))
-    private UUID parent;
+    private UUID idParent;
 
     @Column(name = "date", nullable = false)
     private LocalDateTime date;
 
-    @Column(name = "price", nullable = false)
+    @Column(name = "avg_price", nullable = false)
     private Long price;
 
     @Override

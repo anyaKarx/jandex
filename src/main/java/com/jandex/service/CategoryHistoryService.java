@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -15,7 +14,7 @@ import java.util.UUID;
 public class CategoryHistoryService {
     private final CategoryHistoryRepository historyRepository;
 
-    public Optional<List<CategoryHistory>> getHistoriesByDataAndCategory(LocalDateTime date, LocalDateTime date2, UUID id) {
-        return historyRepository.findAllByDateBetweenAndParent_Id(date, date2, id);
+    public List<CategoryHistory> getHistoriesByDataAndCategory(LocalDateTime date, LocalDateTime date2, UUID id) {
+        return historyRepository.findAllByDateBetweenAndIdParent(date, date2, id);
     }
 }

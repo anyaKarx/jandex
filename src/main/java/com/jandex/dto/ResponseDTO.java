@@ -10,8 +10,8 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class ResponseDTO {
     @Schema(description = "Код ответа")
-    private int resultCode;
+    private final int resultCode;
 
     @Schema(description = "Сообщение")
-    private String resultMessage;
+    private final String resultMessage;
 }
