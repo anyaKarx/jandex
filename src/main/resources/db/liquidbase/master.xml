@@ -92,53 +92,53 @@
                                  onDelete ="CASCADE"/>
     </changeSet>
 
-<!--    <changeSet id="171616361377-5" author="anya">-->
-<!--        <createProcedure>-->
-<!--                CREATE OR REPLACE FUNCTION process_goods_audit() RETURNS TRIGGER AS-->
-<!--                $$-->
-<!--                BEGIN-->
-<!--                IF (TG_OP = 'UPDATE') THEN-->
-<!--                INSERT INTO history(id_parent, price, date) SELECT  NEW.id, NEW.price, NEW.date;-->
-<!--                RETURN NEW;-->
-<!--                ELSIF (TG_OP = 'INSERT') THEN-->
-<!--               INSERT INTO history(id_parent, price, date) SELECT  NEW.id, NEW.price, NEW.date;-->
-<!--                RETURN NEW;-->
-<!--                END IF;-->
-<!--                RETURN NULL; &#45;&#45; возвращаемое значение для триггера AFTER игнорируется-->
-<!--                END;-->
-<!--                $$ LANGUAGE plpgsql;-->
-<!--        </createProcedure>-->
+    <changeSet id="171616361377-5" author="anya">
+        <createProcedure>
+                CREATE OR REPLACE FUNCTION process_goods_audit() RETURNS TRIGGER AS
+                $$
+                BEGIN
+                IF (TG_OP = 'UPDATE') THEN
+                INSERT INTO history(id_parent, price, date) SELECT  NEW.id, NEW.price, NEW.date;
+                RETURN NEW;
+                ELSIF (TG_OP = 'INSERT') THEN
+               INSERT INTO history(id_parent, price, date) SELECT  NEW.id, NEW.price, NEW.date;
+                RETURN NEW;
+                END IF;
+                RETURN NULL; -- возвращаемое значение для триггера AFTER игнорируется
+                END;
+                $$ LANGUAGE plpgsql;
+        </createProcedure>
 
-<!--        <sql>-->
-<!--                CREATE TRIGGER history_audit-->
-<!--                    AFTER INSERT OR UPDATE ON public.offer-->
-<!--                    FOR EACH ROW EXECUTE PROCEDURE process_goods_audit();-->
-<!--        </sql>-->
+        <sql>
+                CREATE TRIGGER history_audit
+                    AFTER INSERT OR UPDATE ON public.offer
+                    FOR EACH ROW EXECUTE PROCEDURE process_goods_audit();
+        </sql>
 
-<!--        </changeSet>-->
+        </changeSet>
 
-<!--    <changeSet id="171616361377-6" author="anya">-->
-<!--        <createProcedure>-->
-<!--            CREATE OR REPLACE FUNCTION process_category_audit() RETURNS TRIGGER AS-->
-<!--                $$-->
-<!--            BEGIN-->
-<!--                IF (TG_OP = 'UPDATE') THEN-->
-<!--                INSERT INTO category_history(id_parent, avg_price, date) SELECT  NEW.id, NEW.price, NEW.date;-->
-<!--            RETURN NEW;-->
-<!--            ELSIF (TG_OP = 'INSERT') THEN-->
-<!--               INSERT INTO category_history(id_parent, avg_price, date) SELECT  NEW.id, NEW.price, NEW.date;-->
-<!--            RETURN NEW;-->
-<!--            END IF;-->
-<!--            RETURN NULL; &#45;&#45; возвращаемое значение для триггера AFTER игнорируется-->
-<!--            END;-->
-<!--                $$ LANGUAGE plpgsql;-->
-<!--        </createProcedure>-->
+    <changeSet id="171616361377-6" author="anya">
+        <createProcedure>
+            CREATE OR REPLACE FUNCTION process_category_audit() RETURNS TRIGGER AS
+                $$
+            BEGIN
+                IF (TG_OP = 'UPDATE') THEN
+                INSERT INTO category_history(id_parent, avg_price, date) SELECT  NEW.id, NEW.price, NEW.date;
+            RETURN NEW;
+            ELSIF (TG_OP = 'INSERT') THEN
+               INSERT INTO category_history(id_parent, avg_price, date) SELECT  NEW.id, NEW.price, NEW.date;
+            RETURN NEW;
+            END IF;
+            RETURN NULL; -- возвращаемое значение для триггера AFTER игнорируется
+            END;
+                $$ LANGUAGE plpgsql;
+        </createProcedure>
 
-<!--        <sql>-->
-<!--            CREATE TRIGGER category_history_audit-->
-<!--                AFTER INSERT OR UPDATE ON public.category-->
-<!--                                    FOR EACH ROW EXECUTE PROCEDURE process_category_audit();-->
-<!--        </sql>-->
+        <sql>
+            CREATE TRIGGER category_history_audit
+                AFTER INSERT OR UPDATE ON public.category
+                                    FOR EACH ROW EXECUTE PROCEDURE process_category_audit();
+        </sql>
 
-<!--    </changeSet>-->
+    </changeSet>
 </databaseChangeLog>
