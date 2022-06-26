@@ -44,6 +44,8 @@ dependencies {
     implementation "io.goodforgod:jackson-datetime-configuration:1.0.0"
 
     implementation "org.postgresql:postgresql"
+    implementation 'io.swagger.core.v3:swagger-annotations:2.2.0'
+    implementation 'org.springdoc:springdoc-openapi-ui:1.6.6'
 
     implementation 'org.liquibase:liquibase-core'
     liquibaseRuntime "org.liquibase:liquibase-core"
@@ -54,6 +56,11 @@ dependencies {
 
     annotationProcessor "org.mapstruct:mapstruct-processor:1.4.2.Final"
     annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+
+    // https://mvnrepository.com/artifact/org.hibernate/hibernate-core
+    implementation 'org.hibernate:hibernate-core:5.6.5.Final'
+// https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-envers
+    implementation 'org.hibernate.orm:hibernate-envers:6.0.1.Final'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'

@@ -127,9 +127,6 @@ public class GoodsServiceTest extends AbstractIT {
         var offer5 = BuilderHelper.createShopUnitImportDTOOffer().setParentId(category3.getId());
 
         offer = offer.setPrice(1500L);
-//        offer1 = offer1.setPrice(2000L);
-//        offer2 = offer2.setPrice(3000L);
-//        offer3 = offer3.setPrice(3400L);
         offer4 = offer4.setPrice(1500L);
         List<ShopUnitImportDTO> importDTOList = new ArrayList<>(List.of(category, category1, category2, category3, offer,
                  offer4, offer5));
@@ -137,9 +134,6 @@ public class GoodsServiceTest extends AbstractIT {
         var request = BuilderHelper.createShopUnitImportRequestDTO(importDTOList);
         goodsService.importsData(request);
         offer = offer.setPrice(10000L);
-//        offer1 = offer1.setPrice(1006L);
-//        offer2 = offer2.setPrice(1057L);
-//        offer3 = offer3.setPrice(1087L);
         offer4 = offer4.setPrice(5660L);
         importDTOList = new ArrayList<>(List.of(offer,
                 offer4, offer5));
@@ -148,8 +142,7 @@ public class GoodsServiceTest extends AbstractIT {
         var result = goodsService.getStatistic(category.getId(), LocalDateTime.now().minusDays(11L).toString().substring(0, 24), LocalDateTime.now().minusDays(8L).toString().substring(0, 24));
         goodsService.importsData(request2);
         result = goodsService.getStatistic(category.getId(), LocalDateTime.now().minusDays(11L).toString().substring(0, 24), LocalDateTime.now().minusDays(8L).toString().substring(0, 24));
-        Integer v = goodsService.v;
         assertEquals(category.getId(), result.getItems().get(0).getId());
-        assertEquals(12, result.getItems().size());
+        assertEquals(7, result.getItems().size());
     }
 }

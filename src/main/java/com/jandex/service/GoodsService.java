@@ -11,7 +11,6 @@ import com.jandex.mapper.GoodsMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.Valid;
@@ -34,7 +33,6 @@ public class GoodsService {
     private final HistoryService historyService;
     private final GoodsMapper goodsMapper;
     private final CategoryHistoryService categoryHistoryService;
-    public static Integer v = 0;
 
     @Transactional
     public ResponseDTO delete(UUID id) {
@@ -109,9 +107,12 @@ public class GoodsService {
 
     public void saveOffer(List<ShopUnitDTO> itemsToEntity, LocalDateTime dateTime) {
         itemsToEntity.stream().map(goodsMapper::shopUnitToOffer).forEach(offer -> {
-            var parent = categoryService.getCategoryByUUID(offer.getParent())
-                    .orElseThrow(() ->
-                            new IncorrectDataException("Невалидная схема документа или входные данные не верны."));
+            if(offer.getParent() != null){
+                categoryService.getCategoryByUUID(offer.getParent())
+                        .orElseThrow(() ->
+                                new IncorrectDataException("Невалидная схема документа или входные данные не верны."));
+            }
+
 
             if (offerService.getOfferByUUID(offer.getId()).isPresent()) { // Проверка: записаны ли эти данные уже
                 var oldDateTime = offerService.getOfferByUUID(offer.getId()).get().getDate();
@@ -125,7 +126,12 @@ public class GoodsService {
                 offerService.save(offer);
             }
 
-            recursVizov(dateTime, parent.getId());
+            if(offer.getParent() != null){
+                Category parent = categoryService.getCategoryByUUID(offer.getParent())
+                        .orElseThrow(() ->
+                                new IncorrectDataException("Невалидная схема документа или входные данные не верны."));
+
+            setDateAndPrice(dateTime, parent.getId());}
         });
     }
 
@@ -198,27 +204,21 @@ public class GoodsService {
         }
     }
 
-    public void recursVizov(LocalDateTime date, UUID parentId)
-    {
+    public void setDateAndPrice(LocalDateTime date, UUID parentId) {
+        //TODO: заменить триггеры и таблицы историй  на hibernate evners
         var category = categoryService.getCategoryByUUID(parentId)
                 .orElseThrow(() ->
                         new IncorrectDataException("Невалидная схема документа или входные данные не верны."));
-        setDateAndPrice(date, category);
+        category.setDate(date);
+        category.setPrice(getAvgPrice(category));
+        categoryService.save(category);
         while (category.getParentId() != null)
         {
             category =  categoryService.getCategoryByUUID(category.getParentId())
                     .orElseThrow(() ->
                             new IncorrectDataException("Невалидная схема документа или входные данные не верны."));
-            setDateAndPrice(date, category);
+            setDateAndPrice(date, category.getId());
         }
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void setDateAndPrice(LocalDateTime date, Category category) {
-        category.setDate(date);
-        category.setPrice(getAvgPrice(category));
-        categoryService.update(category);
-        this.v++;
     }
 
     public List<Category> getChildren(Category parent) {
